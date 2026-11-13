@@ -267,7 +267,7 @@ const ZMAX = NR * CFG.DZ, HALFW = NB * CFG.DX / 2;
 
 /* ======================= settings (persisted) ======================= */
 const DEF = { rate: 40, camMotion: 1, shotLen: 1, cutColor: true, ballSize: 0.8, reflect: 0.55, grid: 0.95, lines: true, text: true, flat: false, adaptive: true,
-  theme: 'waterfall', logScale: true, logRange: 20, hGain: 2.2, cs_rainbow: true, cs_winter: true, cs_cyanPink: true, cs_pinkCyan: true, cs_blue: true, cs_blueOr: true, cs_orBlue: true, gapless: true, vol: 0.8, muted: false, repeat: 0, shuffle: false, uiAlpha: 0.55, textSize: 1, ignoreThe: true, fpsCap: 60, collapsed: false, folders: [] };
+  theme: 'waterfall', logScale: true, logRange: 20, hGain: 2.2, cs_rainbow: true, cs_winter: true, cs_cyanPink: true, cs_pinkCyan: true, cs_blue: true, cs_blueOr: true, cs_orBlue: true, gapless: true, autoClear: false, vol: 0.8, muted: false, repeat: 0, shuffle: false, uiAlpha: 0.55, textSize: 1, ignoreThe: true, fpsCap: 60, collapsed: false, folders: [] };
 const S = Object.assign({}, DEF); S.folders = [];
 const SKEY = 'spectral.settings.v2';
 // Settings live in settings.json in the app-data folder (written by the desktop shell); localStorage is only the fallback for a browser preview.
@@ -1056,7 +1056,9 @@ libEl.addEventListener('click', e => {
 });
 libEl.addEventListener('dblclick', e => {
   const h = rowOf(e); if (!h || !h.r || h.r.t === 'L' || e.target.classList.contains('chev')) return;
-  const t = rowTracks(h.r); if (t.length) addToNP(t, true);
+  const t = rowTracks(h.r); if (!t.length) return;
+  if (S.autoClear) clearNP(true);                          // optional: a double-click starts a fresh Now Playing (dragging never clears)
+  addToNP(t, true);
 });
 // "Show in File Browser": opens the OS file manager with the file selected (for an album, its first track). Only offered by the desktop app, and only for files that exist.
 function revealItem(t) {
@@ -1212,7 +1214,7 @@ function renderHead() {
   $('#plInfo').textContent = p.tracks.length.toLocaleString() + ' track' + (p.tracks.length === 1 ? '' : 's') + (secs ? ' · ' + fmt(secs) : '') + (p.special ? '' : '  ·  saved automatically');
   $('#plClear').style.display = p.special && p.tracks.length ? 'inline-block' : 'none';       // only on Now Playing, and only when there is something to clear
 }
-function clearNP() {
+function clearNP(quiet) {
   const np = PL.all.get(NP_NAME), n = np.tracks.length; if (!n) return;
   if (P.list === np) {                                      // playing from Now Playing: clearing it stops playback (playing from a saved playlist is left alone)
     dropPre(); stopFileAudio(); stopDemo();
@@ -1221,7 +1223,7 @@ function clearNP() {
   }
   P.hist = P.hist.filter(h => h.list !== np); P.bag = null; P.pre = null;
   np.tracks = []; np.sel = new Set(); np.anchor = -1; np.scroll = 0; savePL(np); showList(); refreshPlaylistView();
-  showMsg('Cleared Now Playing (' + n.toLocaleString() + ' track' + (n === 1 ? '' : 's') + ')');
+  if (!quiet) showMsg('Cleared Now Playing (' + n.toLocaleString() + ' track' + (n === 1 ? '' : 's') + ')');
 }
 $('#plClear').onclick = () => { clearNP(); $('#plClear').blur(); };
 function showList(keep) {
@@ -1902,6 +1904,7 @@ const SCHEMA = [
   { k: 'textSize', label: 'Text size', min: 0.7, max: 1.6, step: 0.05, fmt: v => v.toFixed(2) + '\u00d7' },
   { k: 'ignoreThe', label: 'Sort \u201cThe Beatles\u201d under B', bool: true },
   { sec: 'Playback' },
+  { k: 'autoClear', label: 'Double-click replaces Now Playing', bool: true, note: 'Double-clicking an artist, album or song in the library clears Now Playing first, then plays it. Dragging and the right-click menu never clear.' },
   { k: 'gapless', label: 'Gapless transitions', bool: true, note: 'Preloads the next track and starts it just before the current one ends.' },
   { sec: 'Library' },
   { folders: true },
