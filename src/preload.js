@@ -26,7 +26,9 @@ window.addEventListener('drop', e => {
 
 contextBridge.exposeInMainWorld('spHost', {
   desktop: true, platform: cfg.platform, dev: cfg.dev,
-  playlistDir: cfg.playlistDir, folders: cfg.folders,
+  playlistDir: cfg.playlistDir, folders: cfg.folders, firstRun: !!cfg.firstRun, mediaOverlay: cfg.mediaOverlay,
+  finishWelcome: list => inv('sp:finishWelcome', list),
+  onMedia(cb) { ipcRenderer.on('sp:media', (_, k) => cb(k)); },      // media keys, when the system media overlay is off
 
   loadSettings: () => ipcRenderer.sendSync('sp:settingsGet'),       // synchronous: the renderer needs them before its first frame
   saveSettings: s => ipcRenderer.send('sp:settingsSet', s),
@@ -63,5 +65,9 @@ contextBridge.exposeInMainWorld('spHost', {
   idle: () => Promise.allSettled([...pending]).then(() => undefined),
   flushed: () => ipcRenderer.send('sp:flushed'),
   reveal: p => inv('sp:reveal', p),
+  editTags: (items, opts) => inv('sp:editTags', items, opts),
+  undoTags: () => inv('sp:undoTags'),
+  undoInfo: () => inv('sp:undoInfo'),
+  onTagProgress(cb) { ipcRenderer.on('sp:tagProgress', (_, p) => cb(p)); },
   metrics: () => inv('sp:metrics'),
 });

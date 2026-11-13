@@ -19,6 +19,12 @@ const log = (...a) => console.log(...a);
   const errs = []; page.on('pageerror', e => errs.push('pageerror: ' + e.message)); page.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
   await page.setViewportSize({ width: 1600, height: 900 }).catch(() => {});
   log('window up after', Date.now() - t0, 'ms; gpu:', nogpu ? 'disabled' : 'default');
+  await page.waitForFunction(() => window.__sp && window.__sp.host, null, { timeout: 30000 });
+  if (await page.evaluate(() => window.__sp.host.firstRun)) {            // a fresh data dir starts with the welcome screen: accept the default folder (SP_MUSIC_ROOT or the Music folder)
+    log('first run: accepting the default music folder');
+    await page.locator('#welcome button.go').click(); await sleep(2500);
+    await page.waitForFunction(() => window.__sp && window.__sp.host, null, { timeout: 30000 });
+  }
 
   // wait for the scan to finish (progress shown in the library info line)
   let info = '', last = '';

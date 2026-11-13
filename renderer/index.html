@@ -63,6 +63,9 @@
   #prog { height:calc(var(--rh) * .28); background:rgba(255,255,255,.16); margin-top:.5em; cursor:pointer; position:relative; }
   #prog::before { content:''; position:absolute; left:0; right:0; top:-.5em; bottom:-.5em; }
   #prog i { display:block; height:100%; width:0; background:#e6ebf6; position:relative; }
+  #prog i::after { content:''; position:absolute; right:-.4em; top:50%; width:.8em; height:.8em; margin-top:-.4em; border-radius:50%; background:inherit; opacity:0; }
+  #prog.scrub i::after { opacity:1; }
+  #prog.scrub { touch-action:none; }
   .times { display:flex; justify-content:space-between; margin-top:.25em; opacity:.88; }
   #ctl { display:flex; align-items:center; gap:.2em; margin-top:.45em; }
   .tb { background:none; border:none; color:#e8eeff; padding:.1em; cursor:pointer; width:calc(var(--rh) * 1.4); height:calc(var(--rh) * 1.4); display:flex; align-items:center; justify-content:center; border-radius:50%; letter-spacing:0; font-size:inherit; }
@@ -146,6 +149,37 @@
   #panel button.sm { font-size:12px; padding:.2em .7em; letter-spacing:.06em; }
   #panel .fl { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; padding:2px 0; word-break:break-all; }
   #panel .fadd { display:flex; gap:6px; margin-top:6px; }
+  #welcome, #tagEd { position:fixed; inset:0; z-index:40; display:none; align-items:center; justify-content:center; background:rgba(2,4,12,.72); }
+  #welcome.open, #tagEd.open { display:flex; }
+  #welcome .card, #tagEd .card { width:min(520px,92vw); max-height:92vh; overflow:auto; box-sizing:border-box; padding:22px 26px 20px; background:rgba(6,10,28,.97); border:1px solid rgba(170,195,255,.45); font-size:15px; letter-spacing:.03em; line-height:1.4; }
+  #welcome h1, #tagEd h1 { margin:0 0 10px; font-size:20px; letter-spacing:.24em; font-weight:600; }
+  #welcome h3, #tagEd h3 { margin:16px 0 6px; font-size:12px; letter-spacing:.22em; opacity:.6; font-weight:600; border-bottom:1px solid rgba(170,195,255,.25); padding-bottom:3px; }
+  #welcome p, #tagEd p { margin:6px 0; }
+  #welcome .fl, #tagEd .fl { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:3px 0; word-break:break-all; font-size:14px; }
+  #welcome .note, #tagEd .note { font-size:12px; opacity:.6; margin-top:4px; }
+  #welcome .tips, #tagEd .tips { display:grid; grid-template-columns:auto 1fr; gap:3px 14px; font-size:13px; }
+  #welcome .tips b, #tagEd .tips b { font-weight:600; opacity:.9; white-space:nowrap; }
+  #welcome .acts, #tagEd .acts { display:flex; gap:10px; margin-top:16px; align-items:center; }
+  #welcome button.go, #tagEd button.go { font-size:15px; padding:.35em 1.3em; letter-spacing:.08em; }
+  #welcome button.sm, #tagEd button.sm { font-size:12px; padding:.2em .7em; letter-spacing:.06em; }
+  html[data-theme] #welcome, html[data-theme] #tagEd { background:rgba(0,0,0,.35); }
+  html[data-theme] #welcome .card, html[data-theme] #tagEd .card { background:var(--bg); color:var(--fg); border-color:var(--line); }
+  html[data-theme] #welcome h3, html[data-theme] #tagEd h3 { border-color:var(--line); }
+  #tagEd .grid { display:grid; grid-template-columns:130px 1fr; gap:8px 12px; align-items:center; margin-top:8px; }
+  #tagEd .lb { font-size:13px; opacity:.8; }
+  #tagEd input[type=text] { font:inherit; font-size:14px; color:#eaf0ff; background:rgba(255,255,255,.08); border:1px solid rgba(170,195,255,.35); padding:4px 8px; outline:none; width:100%; box-sizing:border-box; user-select:text; -webkit-user-select:text; }
+  #tagEd input[type=text].chg { border-color:#9db4ff; background:rgba(157,180,255,.16); }
+  #tagEd input[type=text].err { border-color:#ff8a7a; }
+  #tagEd .chk { display:flex; gap:8px; align-items:center; margin-top:12px; font-size:13px; cursor:pointer; }
+  #tagEd .res { font-size:13px; max-height:30vh; overflow:auto; margin-top:8px; word-break:break-all; line-height:1.35; }
+  #tagEd .prog { height:4px; background:rgba(255,255,255,.16); margin-top:14px; } #tagEd .prog i { display:block; height:100%; width:0; background:#e6ebf6; }
+  #tagEd .acts .sp { flex:1; font-size:13px; opacity:.75; }
+  html[data-theme] #tagEd input[type=text] { color:var(--fg); background:var(--soft); border-color:var(--line); }
+  html[data-theme] #tagEd input[type=text].chg { border-color:var(--acc); }
+  html[data-theme] #tagEd .prog { background:var(--line); } html[data-theme] #tagEd .prog i { background:var(--fg); }
+  #undoBar { position:fixed; left:50%; top:3%; transform:translateX(-50%); font-size:14px; color:#d8f5e8; background:rgba(8,12,30,.92); padding:.35em .5em .35em 1em; border:1px solid rgba(150,230,190,.45); display:none; z-index:31; align-items:center; gap:.9em; }
+  #undoBar.open { display:flex; }
+  #undoBar button { font-size:13px; padding:.15em .8em; }
   /* lightweight display modes (Ctrl+L): no waterfall is calculated or drawn, the page is a plain light or dark surface */
   html[data-theme="light"] { --bg:#fff; --fg:#14171c; --soft:rgba(0,0,0,.07); --hover:rgba(0,0,0,.13); --line:rgba(0,0,0,.2); --btnb:rgba(0,0,0,.4); --boxbg:rgba(0,0,0,.03); --sel:#1d2530; --selfg:#fff; --acc:#0b62b8; }
   html[data-theme="dark"] { --bg:#2b2d31; --fg:#f4f4f4; --soft:rgba(255,255,255,.09); --hover:rgba(255,255,255,.17); --line:rgba(255,255,255,.2); --btnb:rgba(255,255,255,.4); --boxbg:rgba(255,255,255,.04); --sel:#ececf0; --selfg:#14171c; --acc:#8fc4ff; }
@@ -242,6 +276,9 @@
 <button id="hideUI" title="Hide / show lists (Ctrl+H)"><svg viewBox="0 0 20 20"><rect x="2" y="3.5" width="16" height="13" rx="1.5"/><path d="M8 3.5v13M3.8 7h2.4M3.8 10h2.4M3.8 13h2.4M11 7h5M11 10h5M11 13h5"/></svg></button>
 <button id="gear" title="Settings (Ctrl+,)">&#9881;</button>
 <div id="panel"></div>
+<div id="welcome"></div>
+<div id="tagEd"></div>
+<div id="undoBar"><span></span><button>Undo</button></div>
 <input type="file" id="file" accept="audio/*" multiple hidden>
 <input type="file" id="plfile" accept=".m3u,.m3u8,.pls" hidden>
 
@@ -267,7 +304,7 @@ const ZMAX = NR * CFG.DZ, HALFW = NB * CFG.DX / 2;
 
 /* ======================= settings (persisted) ======================= */
 const DEF = { rate: 40, camMotion: 1, shotLen: 1, cutColor: true, ballSize: 0.8, reflect: 0.55, grid: 0.95, lines: true, text: true, flat: false, adaptive: true,
-  theme: 'waterfall', logScale: true, logRange: 20, hGain: 2.2, cs_rainbow: true, cs_winter: true, cs_cyanPink: true, cs_pinkCyan: true, cs_blue: true, cs_blueOr: true, cs_orBlue: true, gapless: true, autoClear: false, vol: 0.8, muted: false, repeat: 0, shuffle: false, uiAlpha: 0.55, textSize: 1, ignoreThe: true, fpsCap: 60, collapsed: false, folders: [] };
+  theme: 'waterfall', logScale: true, logRange: 20, hGain: 2.2, cs_rainbow: true, cs_winter: true, cs_cyanPink: true, cs_pinkCyan: true, cs_blue: true, cs_blueOr: true, cs_orBlue: true, gapless: true, autoClear: false, mediaOverlay: true, vol: 0.8, muted: false, repeat: 0, shuffle: false, uiAlpha: 0.55, textSize: 1, ignoreThe: true, fpsCap: 60, collapsed: false, folders: [] };
 const S = Object.assign({}, DEF); S.folders = [];
 const SKEY = 'spectral.settings.v2';
 // Settings live in settings.json in the app-data folder (written by the desktop shell); localStorage is only the fallback for a browser preview.
@@ -902,6 +939,30 @@ function seekTo(t) {
   t = Math.max(0, t); if (P.virtual) P.vt = t; else audioEl.currentTime = t;
 }
 const seekBy = d => seekTo(curTime() + d);
+/* ---- system media controls: media keys, headset buttons and the operating system's volume / media flyout ---- */
+function mediaAction(k) {
+  if (k === 'play') { if (isPaused()) togglePause(); }
+  else if (k === 'pause') { if (!isPaused()) togglePause(); }
+  else if (k === 'playpause') togglePause();
+  else if (k === 'stop') { if (P.track) { if (!isPaused()) togglePause(); seekTo(0); } }
+  else if (k === 'next') nextTrack();
+  else if (k === 'prev') prevTrack();
+}
+const MSESS = navigator.mediaSession || null;
+function syncMedia() {
+  if (!MSESS) return;
+  const t = P.track;
+  try {
+    MSESS.metadata = S.mediaOverlay && t ? new MediaMetadata({ title: t.title || '', artist: t.artist || '', album: t.album || '' }) : null;
+    MSESS.playbackState = !t ? 'none' : isPaused() ? 'paused' : 'playing';
+  } catch (_) {}
+}
+if (MSESS) {
+  const h = (n, f) => { try { MSESS.setActionHandler(n, f); } catch (_) {} };
+  h('play', () => mediaAction('play')); h('pause', () => mediaAction('pause')); h('stop', () => mediaAction('stop'));
+  h('previoustrack', () => mediaAction('prev')); h('nexttrack', () => mediaAction('next'));
+  h('seekto', d => { if (d && isFinite(d.seekTime)) seekTo(d.seekTime); });
+}
 function tickPlayer() {
   const now = performance.now(), dt = Math.min(0.25, (now - P.lastMs) / 1000); P.lastMs = now;
   if (P.track && P.virtual && !P.vpaused && !P.ended) { P.vt += dt; if (P.vt >= P.track.dur) onEnded(); }
@@ -926,20 +987,22 @@ const ICON = {
 };
 const progI = $('#prog i'), bPlay = $('#bPlay'), bRep = $('#bRep'), bShuf = $('#bShuf'), bVol = $('#bVol'), volEl = $('#vol');
 const tr = { cur: '', dur: '', w: -1, playing: null };
+let scrub = null;                                    // while the progress bar is being dragged: { t: seconds at the pointer }; playback is untouched until release
 function updateTransport() {
+  if (scrub) { const ds = isFinite(curDur()) ? fmt(curDur()) : '--:--'; if (ds !== tr.dur) { tr.dur = ds; $('#tdur').textContent = ds; } return; }   // the bar and counter follow the pointer, not the song
   const c = curTime(), d = curDur(), cs = fmt(c), ds = isFinite(d) ? fmt(d) : '--:--';
   if (cs !== tr.cur) { tr.cur = cs; $('#tcur').textContent = cs; }
   if (ds !== tr.dur) { tr.dur = ds; $('#tdur').textContent = ds; }
   const w = isFinite(d) && d > 0 ? Math.min(100, c / d * 100) : 0;
   if (Math.abs(w - tr.w) > 0.04) { tr.w = w; progI.style.width = w + '%'; }
-  const pl = !isPaused(); if (pl !== tr.playing) { tr.playing = pl; bPlay.innerHTML = pl ? ICON.pause : ICON.play; }
+  const pl = !isPaused(); if (pl !== tr.playing) { tr.playing = pl; bPlay.innerHTML = pl ? ICON.pause : ICON.play; syncMedia(); }
 }
 function onTrackChanged() {
   const t = P.track;
   $('#npTitle').textContent = t ? t.title : 'Nothing playing';
   $('#npSub').textContent = t ? [t.artist, t.album].filter(Boolean).join('  —  ') : '';
   document.title = t ? (t.artist ? t.artist + ' – ' : '') + t.title : 'Spectral';
-  tr.dur = ''; tr.w = -1; updateTransport();
+  tr.dur = ''; tr.w = -1; updateTransport(); syncMedia();
 }
 function syncButtons() {
   bPlay.innerHTML = ICON.play; $('#bPrev').innerHTML = ICON.prev; $('#bNext').innerHTML = ICON.next;
@@ -953,7 +1016,23 @@ bRep.onclick = () => { setS('repeat', (S.repeat + 1) % 3); P.bag = null; };
 bShuf.onclick = () => { setS('shuffle', !S.shuffle); P.bag = null; };
 bVol.onclick = () => setS('muted', !S.muted);
 volEl.oninput = () => { S.muted = false; setS('vol', +volEl.value / 100); };
-$('#prog').addEventListener('click', e => { const r = $('#prog').getBoundingClientRect(), d = curDur(); if (isFinite(d)) seekTo((e.clientX - r.left) / r.width * d); });
+/* progress bar: press and drag to pick a position (the bar and the counter follow the pointer, the music keeps playing); the seek happens on release, Esc cancels */
+const progEl = $('#prog');
+function scrubTo(e) {
+  const r = progEl.getBoundingClientRect(), d = curDur(), f = clamp((e.clientX - r.left) / r.width, 0, 1);
+  scrub.t = f * d; progI.style.width = f * 100 + '%'; const cs = fmt(scrub.t); if (cs !== tr.cur) { tr.cur = cs; $('#tcur').textContent = cs; }
+}
+function endScrub() { if (!scrub) return; scrub = null; progEl.classList.remove('scrub'); tr.cur = ''; tr.w = -1; updateTransport(); }
+progEl.addEventListener('pointerdown', e => {
+  if (e.button !== 0 || !P.track || !(curDur() > 0) || !isFinite(curDur())) return;
+  e.preventDefault(); try { progEl.setPointerCapture(e.pointerId); } catch (_) {}
+  scrub = { t: 0 }; progEl.classList.add('scrub'); scrubTo(e);
+});
+progEl.addEventListener('pointermove', e => { if (scrub) scrubTo(e); });
+progEl.addEventListener('pointerup', e => { if (!scrub) return; scrubTo(e); const t = scrub.t; endScrub(); seekTo(t); });
+progEl.addEventListener('pointercancel', endScrub);
+progEl.addEventListener('lostpointercapture', endScrub);
+addEventListener('keydown', e => { if (scrub && e.key === 'Escape') endScrub(); }, true);
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button'); if (b) b.blur(); });
 volEl.onchange = () => volEl.blur();
 
@@ -1065,6 +1144,156 @@ function revealItem(t) {
   if (!host.reveal || !t || !t.abs) return [];
   return [{ sep: true }, { label: 'Show in File Browser', disabled: !!t.missing, fn: () => host.reveal(t.abs) }];
 }
+/* ======================= edit tags (right-click > Edit tags…) ======================= */
+const tagEd = $('#tagEd'), undoBar = $('#undoBar');
+const EDITABLE = /\.(mp3|flac|m4a)$/i;                                         // formats the desktop shell can write (see src/tagedit.js)
+const canEdit = t => t && t.abs && !t.missing && !t.mock && EDITABLE.test(t.abs);
+function editTagsItem(tracks, mode, name) {
+  if (!host.editTags || !tracks.length) return [];
+  return [{ sep: true }, { label: 'Edit tags…', disabled: !tracks.some(canEdit), fn: () => openTagEditor(tracks, mode, name) }];
+}
+const TAGV = { title: t => t.title || '', artist: t => t.artist || '', album: t => t.album || '', albumArtist: t => t.albumArtist || '', track: t => (t.no ? String(t.no) : ''), disc: t => (t.disc ? String(t.disc) : ''), year: t => (t.year ? String(t.year) : '') };
+const TAGLAB = { title: 'Title', artist: 'Artist', album: 'Album', albumArtist: 'Album artist', track: 'Track number', disc: 'Disc number', year: 'Year' };
+const NUMFIELD = { track: 1, disc: 1, year: 1 };
+let tagUI = null;                                                              // { busy } while the dialog is open
+function closeTagEd() { tagEd.classList.remove('open'); tagEd.textContent = ''; tagUI = null; }
+function openTagEditor(all, mode, name) {
+  const tracks = all.filter(canEdit), skipped = all.length - tracks.length;
+  if (!tracks.length || tagUI) return;
+  hideMenu(); tagEd.textContent = ''; tagUI = { busy: false };
+  const card = el('div', 'card'); tagEd.appendChild(card);
+  const what = mode === 'artist' ? 'artist' : mode === 'album' ? 'album' : tracks.length === 1 ? 'song' : tracks.length + ' songs';
+  card.appendChild(el('h1', '', 'EDIT TAGS'));
+  card.appendChild(el('p', '', mode === 'artist' ? '“' + name + '” · ' + tracks.length + ' song' + (tracks.length === 1 ? '' : 's') : mode === 'album' ? '“' + name + '” · ' + tracks.length + ' song' + (tracks.length === 1 ? '' : 's') : tracks.length === 1 ? (tracks[0].title || '') : tracks.length + ' songs selected'));
+  const keys = mode === 'artist' ? ['albumArtist'] : mode === 'album' ? ['album', 'albumArtist', 'year'] : ['title', 'artist', 'album', 'albumArtist', 'track', 'disc', 'year'];
+  const grid = el('div', 'grid'); card.appendChild(grid);
+  const F = keys.map(k => {
+    const vals = new Set(tracks.map(t => TAGV[k](t)));
+    let mixed = vals.size > 1, orig = mixed ? '' : [...vals][0];
+    if (mode === 'artist') { mixed = false; orig = name === 'Unknown Artist' && !tracks.some(t => t.albumArtist || t.artist) ? '' : name; }      // the group's displayed name
+    const inp = el('input'); inp.type = 'text'; inp.spellcheck = false; inp.autocomplete = 'off'; inp.value = orig;
+    if (mixed) inp.placeholder = '(multiple values)';
+    grid.appendChild(el('label', 'lb', mode === 'artist' ? 'Artist name' : TAGLAB[k])); grid.appendChild(inp);
+    return { k, inp, mixed, orig };
+  });
+  let trackArtistChk = null;
+  if (mode === 'artist') {
+    card.appendChild(el('div', 'note', 'Sets the Album artist tag on every song listed under this name. That is the tag Spectral groups the library by.'));
+    const l = el('label', 'chk'), c = el('input'); c.type = 'checkbox'; trackArtistChk = c;
+    c.checked = tracks.some(t => !t.albumArtist && norm(t.artist) === norm(name));
+    l.append(c, document.createTextNode('Also change the track artist on songs where it is currently “' + name + '”')); card.appendChild(l);
+  }
+  if (skipped) card.appendChild(el('div', 'note', skipped + ' of the ' + all.length + ' songs are in a format that cannot be edited here (for example WMA) and will be left alone.'));
+  const prog = el('div', 'prog'); prog.appendChild(el('i')); prog.style.display = 'none'; card.appendChild(prog);
+  const res = el('div', 'res'); res.style.display = 'none'; card.appendChild(res);
+  const acts = el('div', 'acts'), info = el('span', 'sp'), save = el('button', 'go', 'Save'), cancel = el('button', 'sm', 'Cancel'); acts.append(info, cancel, save); card.appendChild(acts);
+
+  // what would be written, per file
+  const changes = () => {
+    const ch = {}; let valid = true;
+    for (const f of F) {
+      const v = f.inp.value.trim(), dirty = f.mixed ? v !== '' : v !== f.orig.trim();
+      f.inp.classList.toggle('chg', dirty); const bad = NUMFIELD[f.k] && v !== '' && !/^\d{1,5}$/.test(v); f.inp.classList.toggle('err', !!bad); if (bad) valid = false;
+      if (dirty) ch[f.k] = NUMFIELD[f.k] ? (v === '' ? null : +v) : (v === '' ? null : v);
+    }
+    const items = [], cur = t => ({ title: t.title || '', artist: t.artist || '', album: t.album || '', albumArtist: t.albumArtist || '', track: t.no || null, disc: t.disc || null, year: t.year || null });
+    for (const t of tracks) {
+      const set = { ...ch };
+      if (mode === 'artist' && trackArtistChk.checked && 'albumArtist' in ch && ch.albumArtist && norm(t.artist) === norm(name)) set.artist = ch.albumArtist;
+      const c = cur(t), diff = Object.keys(set).filter(k => (set[k] === null ? (NUMFIELD[k] ? c[k] !== null : c[k] !== '') : set[k] !== c[k]));
+      if (diff.length) items.push({ abs: t.abs, set: Object.fromEntries(diff.map(k => [k, set[k]])) });
+    }
+    return { items, valid };
+  };
+  const refresh = () => {
+    if (tagUI && tagUI.busy) return; const { items, valid } = changes();
+    save.disabled = !items.length || !valid; info.textContent = !valid ? 'Numbers only' : items.length ? items.length + ' file' + (items.length === 1 ? '' : 's') + ' will be changed' : 'No changes';
+  };
+  for (const f of F) f.inp.addEventListener('input', refresh); if (trackArtistChk) trackArtistChk.addEventListener('change', refresh);
+  cancel.onclick = () => { if (!tagUI.busy) closeTagEd(); };
+  const doSave = async () => {
+    const { items, valid } = changes(); if (!items.length || !valid || tagUI.busy) return;
+    tagUI.busy = true; save.disabled = cancel.disabled = true; for (const f of F) f.inp.disabled = true; if (trackArtistChk) trackArtistChk.disabled = true;
+    prog.style.display = ''; info.textContent = 'Saving 0 / ' + items.length + '…'; tagUI.onProgress = p => { prog.firstChild.style.width = Math.round(p.done / p.total * 100) + '%'; info.textContent = 'Saving ' + p.done + ' / ' + p.total + '…'; };
+    const label = 'Edit tags: ' + (mode === 'songs' ? (tracks.length === 1 ? (tracks[0].title || 'song') : tracks.length + ' songs') : name);
+    const out = await writeTags(items, label);
+    if (!out.failed.length) { closeTagEd(); showUndo('Saved changes to ' + out.changed + ' file' + (out.changed === 1 ? '' : 's')); return; }
+    prog.style.display = 'none'; res.style.display = ''; res.textContent = '';
+    res.appendChild(el('div', '', out.changed + ' file' + (out.changed === 1 ? '' : 's') + ' changed, ' + out.failed.length + ' not changed:'));
+    for (const f of out.failed.slice(0, 12)) res.appendChild(el('div', 'note', f.abs.slice(f.abs.lastIndexOf('/') + 1) + ' — ' + f.error));
+    if (out.failed.length > 12) res.appendChild(el('div', 'note', '…and ' + (out.failed.length - 12) + ' more'));
+    info.textContent = ''; cancel.remove(); save.textContent = 'Close'; save.disabled = false; save.onclick = closeTagEd; tagUI.busy = false;
+    if (out.changed) showUndo(out.changed + ' file' + (out.changed === 1 ? '' : 's') + ' changed', true);
+  };
+  save.onclick = doSave;
+  card.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape' && !tagUI.busy) closeTagEd(); else if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type === 'text' && !save.disabled) { e.preventDefault(); save.click(); } });
+  refresh(); tagEd.classList.add('open'); const first = F[0].inp; first.focus(); first.select();
+}
+// Playback and files: a rewritten MP3 can shift the audio inside the file, so the playing song is written first, then reloaded where it was
+async function withPlayingFileSafe(inList, fn) {
+  const cur = P.track && !P.virtual && P.track.abs ? P.track : null, a = audioEl;
+  const hit = cur && inList(cur.abs.toLowerCase());
+  dropPre(); G.armed = null;
+  if (!hit) return fn();
+  const pos = curTime(), was = !isPaused(); a.pause();
+  try { return await fn(); }
+  finally {
+    if (P.track === cur) { a.src = host.trackUrl(cur); a.addEventListener('loadedmetadata', () => { try { a.currentTime = pos; } catch (_) {} if (was) { const p = a.play(); if (p && p.catch) p.catch(() => {}); } updateTransport(); }, { once: true }); }
+  }
+}
+function applyTagResults(items, results) {
+  const upd = new Map(); for (const r of results) if (r.ok && r.changed) { const it = items.find(i => i.abs === r.abs); if (it) upd.set(r.abs.toLowerCase(), it.set); }
+  if (!upd.size) return;
+  const MAP = { title: 'title', artist: 'artist', album: 'album', albumArtist: 'albumArtist', track: 'no', disc: 'disc', year: 'year' };
+  const apply = (t, set) => { for (const k in set) { if (set[k] === null) continue; t[MAP[k]] = set[k]; } t.hay = undefined; };    // removed fields stay as they were until the rescan reports the file's new state
+  const seen = new Set();
+  for (const [abs, set] of upd) { const t = LIB.byAbs.get(abs); if (t) { apply(t, set); seen.add(t); } }
+  for (const p of PL.all.values()) for (const t of p.tracks) if (t && t.abs && !seen.has(t)) { const set = upd.get(t.abs.toLowerCase()); if (set) { apply(t, set); seen.add(t); } }
+  setLibrary(LIB.tracks); refreshPlaylistView(); onTrackChanged();
+}
+async function writeTags(items, label) {
+  const batch = 'b' + Date.now(), failed = []; let changed = 0;
+  const run = async list => { const r = await host.editTags(list, { batch, label }); if (r.error) { for (const it of list) failed.push({ abs: it.abs, error: r.error }); return; } for (const x of r.results) { if (!x.ok) failed.push(x); else if (x.changed) changed++; } applyTagResults(list, r.results); };
+  const want = new Set(items.map(i => i.abs.toLowerCase()));
+  try {
+    await withPlayingFileSafe(abs => want.has(abs), async () => {
+      const cur = P.track && P.track.abs ? P.track.abs.toLowerCase() : '', first = items.filter(i => i.abs.toLowerCase() === cur), rest = items.filter(i => i.abs.toLowerCase() !== cur);
+      if (first.length) await run(first);
+      if (rest.length) await run(rest);
+    });
+  } catch (e) { failed.push({ abs: '', error: e.message || String(e) }); }
+  return { changed, failed };
+}
+let undoT = 0;
+function showUndo(text, keep) {
+  undoBar.firstChild.textContent = text; undoBar.classList.add('open'); clearTimeout(undoT); undoT = setTimeout(() => undoBar.classList.remove('open'), keep ? 12000 : 15000);
+}
+undoBar.querySelector('button').onclick = () => { undoBar.classList.remove('open'); undoLastTags(); };
+async function undoLastTags() {
+  if (!host.undoInfo) return;
+  let info; try { info = await host.undoInfo(); } catch (_) {}
+  if (!info) { showMsg('No tag edit to undo'); return; }
+  const files = new Set(info.files.map(f => f.toLowerCase()));
+  showMsg('Undoing “' + info.label + '”…');
+  let r; try { r = await withPlayingFileSafe(abs => files.has(abs), () => host.undoTags()); } catch (e) { r = { error: e.message || String(e) }; }
+  if (r.error) { showMsg('Could not undo: ' + r.error); return; }
+  const bad = r.results.filter(x => !x.ok);
+  showMsg(bad.length ? 'Undid ' + (r.results.length - bad.length) + ' file' + (r.results.length - bad.length === 1 ? '' : 's') + '; ' + bad.length + ' could not be restored (' + bad[0].error + ')' : 'Undid “' + info.label + '” (' + r.results.length + ' file' + (r.results.length === 1 ? '' : 's') + ')');
+}                                                                                  // (the library rescans by itself and picks the restored tags up)
+async function askUndo() {                                                         // Settings > Library > Undo tag edit: say what would be undone first
+  let info; try { info = await host.undoInfo(); } catch (_) {}
+  if (!info) { showMsg('No tag edit to undo'); return; }
+  if (tagUI) return; tagEd.textContent = ''; tagUI = { busy: false };
+  const card = el('div', 'card'); tagEd.appendChild(card);
+  const mins = Math.max(0, Math.round((Date.now() - info.when) / 60000)), ago = mins < 1 ? 'just now' : mins < 60 ? mins + ' min ago' : mins < 1440 ? Math.round(mins / 60) + ' h ago' : Math.round(mins / 1440) + ' days ago';
+  card.append(el('h1', '', 'UNDO TAG EDIT'), el('p', '', '“' + info.label + '”'), el('div', 'note', info.count + ' file' + (info.count === 1 ? '' : 's') + ' · ' + ago + '. Puts the tags back as they were before that edit.'));
+  const acts = el('div', 'acts'), no = el('button', 'sm', 'Cancel'), yes = el('button', 'go', 'Undo'); acts.append(el('span', 'sp'), no, yes); card.appendChild(acts);
+  no.onclick = closeTagEd; yes.onclick = () => { closeTagEd(); undoLastTags(); };
+  card.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape') closeTagEd(); });
+  tagEd.classList.add('open'); yes.focus();
+}
+if (host.onTagProgress) host.onTagProgress(p => { if (tagUI && tagUI.onProgress) tagUI.onProgress(p); });
+
 libEl.addEventListener('contextmenu', e => {
   e.preventDefault(); const h = rowOf(e); if (!h || !h.r || h.r.t === 'L') return;
   libSel = rowKey(h.r); restyleLib(); const tracks = rowTracks(h.r), n = tracks.length;
@@ -1075,6 +1304,7 @@ libEl.addEventListener('contextmenu', e => {
     { sep: true },
     { label: 'Add to playlist', sub: [...plItems, ...(plItems.length ? [{ sep: true }] : []), { label: 'New playlist…', fn: () => newPlaylist(tracks) }] },
     ...revealItem(h.r.t === 'A' ? null : tracks[0]),
+    ...editTagsItem(tracks, h.r.t === 'A' ? 'artist' : h.r.t === 'B' ? 'album' : 'songs', h.r.t === 'A' ? h.r.a.name : h.r.t === 'B' ? h.r.b.name : ''),
   ]);
 });
 function toggleRow(r) {
@@ -1268,6 +1498,7 @@ plEl.addEventListener('contextmenu', e => {
     { sep: true },
     { label: 'Remove from this playlist' + (n > 1 ? ' (' + n + ')' : '') + '  — never deletes files', fn: () => removeFrom(p, idxs) },
     ...revealItem(tracks[0]),
+    ...editTagsItem(tracks, 'songs', ''),
     { sep: true },
     { label: 'Select all', fn: () => { p.sel = new Set(p.tracks.map((_, k) => k)); plList.refresh(); } },
   ]);
@@ -1811,7 +2042,7 @@ window.__sp = {
   PROF, startDemo, S, setS, P, PL, LIB, host, G, AUD, get amps() { return curA; }, get actx() { return actx; }, get analyser() { return analyser; }, get audioEl() { return audioEl; }, playFrom, addToNP, activeList, libList, plList, toM3U, parsePlaylistText, relPath, resolvePath,
   get flat() { return flat; }, get cam() { return [Px, Py, Pz, camYaw / DEG, camRoll / DEG]; },
   get stats() { return { W, H, qual, msAvg, dtAvg, dotCount, frames, rate: S.rate, speed, shot: shot.idx, shotAge: simT - shot.t0 }; },
-  setJump, jumpTarget, SCHEMES, get curSch() { return curSch; }, set curSch(v) { curSch = v; },
+  setJump, jumpTarget, mediaAction, showWelcome, get media() { return MSESS && { md: MSESS.metadata && { title: MSESS.metadata.title, artist: MSESS.metadata.artist, album: MSESS.metadata.album }, state: MSESS.playbackState }; }, SCHEMES, get curSch() { return curSch; }, set curSch(v) { curSch = v; },
   setShot(i) { cutTo(i); shot.dur = 1e9; }, fixQuality(q) { adapt = false; qual = q; resize(); },
 };
 
@@ -1895,7 +2126,49 @@ async function initApp() {
   showList(); plLoaded = true; maybeResolveOff();
   if (host.onFlush) host.onFlush(async () => { flushSaves(); try { await host.idle(); } catch (_) {} host.flushed(); });
   if (host.onOpen) host.onOpen(openPaths);
+  if (host.onMedia) host.onMedia(mediaAction);
+  if (host.firstRun) showWelcome(true);
 }
+
+/* ======================= welcome screen ======================= */
+const welcome = $('#welcome');
+function showWelcome(first) {
+  const folders = first ? S.folders.slice() : null;
+  welcome.textContent = '';
+  const card = el('div', 'card'); welcome.appendChild(card);
+  card.appendChild(el('h1', '', first ? 'WELCOME TO SPECTRAL' : 'QUICK TIPS'));
+  const close = () => { welcome.classList.remove('open'); };
+  if (first) {
+    card.appendChild(el('p', '', 'Spectral plays the music already on your computer. Choose the folder that holds it and Spectral will build your library, which you can browse by artist, album and song.'));
+    card.appendChild(el('h3', '', 'MUSIC FOLDERS'));
+    const box = el('div'); card.appendChild(box);
+    const draw = () => {
+      box.textContent = '';
+      folders.forEach((f, i) => {
+        const r = el('div', 'fl'); r.appendChild(el('span', '', (i === 0 ? 'Main folder: ' : '') + f));
+        if (i === 0) { if (host.pickFolder) { const c = el('button', 'sm', 'Choose…'); c.onclick = async () => { const p = await host.pickFolder(); if (!p) return; const n = normPath(p), d = folders.findIndex((q, k) => k && q.toLowerCase() === n.toLowerCase()); if (d > 0) folders.splice(d, 1); folders[0] = n; draw(); }; r.appendChild(c); } }
+        else { const x = el('button', 'sm', 'remove'); x.onclick = () => { folders.splice(i, 1); draw(); }; r.appendChild(x); }
+        box.appendChild(r);
+      });
+      const add = el('button', 'sm', 'Add another folder…'); add.style.marginTop = '8px';
+      add.onclick = async () => { const p = host.pickFolder ? await host.pickFolder() : null; if (!p) return; const n = normPath(p); if (!folders.some(q => q.toLowerCase() === n.toLowerCase())) { folders.push(n); draw(); } };
+      box.appendChild(add);
+      box.appendChild(el('div', 'note', 'Your playlists (.m3u files) are saved in the main folder. You can change all of this later in Settings.'));
+    };
+    draw();
+  }
+  card.appendChild(el('h3', '', 'GOOD TO KNOW'));
+  const tips = el('div', 'tips');
+  for (const [k, v] of [['Space', 'Play / pause'], ['← →', 'Previous / next track'], ['Ctrl + ← →', 'Back / forward 15 seconds'], ['↑ ↓', 'Volume'], ['Ctrl + F  or  /', 'Search the library'],
+      ['Double-click', 'Play an artist, album or song'], ['Drag', 'Add to Now Playing or a playlist'], ['Right-click', 'More actions on a song'], ['Ctrl + H', 'Hide the lists'], ['Ctrl + L', 'Waterfall, light and dark modes'], ['Ctrl + ,', 'Settings']]) {
+    tips.appendChild(el('b', '', k)); tips.appendChild(el('span', '', v));
+  }
+  card.appendChild(tips);
+  const acts = el('div', 'acts'), go = el('button', 'go', first ? 'Start listening' : 'Close'); acts.appendChild(go); card.appendChild(acts);
+  go.onclick = first ? () => { go.disabled = true; host.finishWelcome(folders); } : close;
+  welcome.classList.add('open'); go.focus();
+}
+welcome.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape' && welcome.querySelector('.go').textContent === 'Close') welcome.classList.remove('open'); });
 
 /* ======================= settings panel ======================= */
 const SCHEMA = [
@@ -1906,6 +2179,7 @@ const SCHEMA = [
   { sec: 'Playback' },
   { k: 'autoClear', label: 'Double-click replaces Now Playing', bool: true, note: 'Double-clicking an artist, album or song in the library clears Now Playing first, then plays it. Dragging and the right-click menu never clear.' },
   { k: 'gapless', label: 'Gapless transitions', bool: true, note: 'Preloads the next track and starts it just before the current one ends.' },
+  { k: 'mediaOverlay', label: 'Show song in the system media overlay', bool: true, note: 'The flyout Windows shows for volume and media keys, with the song name and buttons (also used by Bluetooth headsets). Untick to hide it: the media keys still work. Takes effect after restarting Spectral.' },
   { sec: 'Library' },
   { folders: true },
   { sec: 'Motion' },
@@ -1959,6 +2233,7 @@ function onSetting(k) {
   else if (k === 'vol' || k === 'muted') { applyVolume(); syncButtons(); }
   else if (k === 'repeat' || k === 'shuffle') syncButtons();
   else if (k === 'gapless' && !S.gapless) dropPre();
+  else if (k === 'mediaOverlay') { syncMedia(); if (host.desktop && !!S.mediaOverlay !== host.mediaOverlay) showMsg('Restart Spectral for the media overlay change to take full effect'); }
   else if (k === 'theme') applyTheme();
   else if (k.startsWith('cs_') && !S['cs_' + SCHEMES[curSch].id]) pickScheme(true);   // the scheme in use was just unticked: switch now
 }
@@ -1997,7 +2272,8 @@ function buildPanel() {
       b.onclick = async () => { let f = host.pickFolder ? await host.pickFolder() : inp.value.trim(); if (!f) return; f = normPath(f); if (S.folders.indexOf(f) < 0) { S.folders.push(f); saveS(); renderFolders(); if (host.setFolders) host.setFolders(S.folders); } inp.value = ''; };
       inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') b.onclick(); });
       add.append(inp, b); const rs = el('button', 'sm', 'Rescan now'); rs.onclick = () => { if (host.rescan) host.rescan(); else showMsg('This preview uses a built-in demo library; the desktop app scans these folders.'); };
-      add.appendChild(rs); row.append(list, add); if (host.playlistDir) row.appendChild(el('div', 'note', 'Playlists (.m3u) are read from and saved to ' + host.playlistDir)); folderBox = { list }; panel.appendChild(row); continue;
+      add.appendChild(rs); const tp = el('button', 'sm', 'Quick tips'); tp.onclick = () => { togglePanel(false); showWelcome(false); }; add.appendChild(tp);
+      if (host.undoTags) { const ut = el('button', 'sm', 'Undo tag edit'); ut.title = 'Put the tags back as they were before the last Edit tags'; ut.onclick = () => { togglePanel(false); askUndo(); }; add.appendChild(ut); } row.append(list, add); if (host.playlistDir) row.appendChild(el('div', 'note', 'Playlists (.m3u) are read from and saved to ' + host.playlistDir)); folderBox = { list }; panel.appendChild(row); continue;
     }
     if (it.bool) {
       const l = el('label', 'chk'), inp = el('input'); inp.type = 'checkbox'; inp.onchange = () => { setS(it.k, inp.checked); inp.blur(); };

@@ -1,15 +1,16 @@
 'use strict';
-const { app, BrowserWindow, Menu, protocol, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, Menu, protocol, ipcMain, dialog, shell, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const fsp = fs.promises;
 const { Readable } = require('stream');
 const { Worker } = require('worker_threads');
+const tagedit = require('./tagedit');
 
 const argvFlag = n => process.argv.some(a => a === n);
 const argvVal = n => { const a = process.argv.find(x => x.startsWith(n + '=')); return a ? a.slice(n.length + 1) : ''; };
 app.setName('Spectral');
-if (process.platform === 'win32') app.setAppUserModelId('app.spectral.player');     // same id as the installer's shortcuts: the running window groups with (and a taskbar pin survives for) the installed app
+if (process.platform === 'win32') app.setAppUserModelId('io.github.zacharyulibarri.spectral');     // same id as the installer's shortcuts: the running window groups with (and a taskbar pin survives for) the installed app
 if (argvVal('--user-data')) app.setPath('userData', path.resolve(argvVal('--user-data')));
 else app.setPath('userData', path.join(app.getPath('appData'), 'Spectral'));
 const DEV = argvFlag('--dev') || process.env.SP_DEV === '1';
@@ -34,11 +35,24 @@ const CFG_FILE = ud('config.json');
 let cfg = readJSON(CFG_FILE, {});
 // The primary folder (folders[0]) always exists: on a first run it is the user's OS Music folder (or $SP_MUSIC_ROOT); it can be changed in Settings but not removed.
 function defaultRoot() { return fwd(process.env.SP_MUSIC_ROOT || app.getPath('music')); }
-if (!Array.isArray(cfg.folders) || !cfg.folders.length) cfg.folders = [{ id: 'r1', path: defaultRoot() }];
+const hadFolders = Array.isArray(cfg.folders) && cfg.folders.length;
+if (!hadFolders) cfg.folders = [{ id: 'r1', path: defaultRoot() }];
+if (!hadFolders && cfg.welcomed === undefined) cfg.welcomed = false;       // a brand-new install: the welcome screen asks for the music folder first (an existing config counts as already set up)
+let firstRun = cfg.welcomed === false;                                     // stays true until the welcome screen is finished, even across restarts
 if (!cfg.playlistDir) cfg.playlistDir = cfg.folders[0].path;
 if (process.env.SP_PLAYLIST_DIR) cfg.playlistDir = fwd(process.env.SP_PLAYLIST_DIR);
 const saveConfig = () => { try { writeAtomicSync(CFG_FILE, JSON.stringify(cfg, null, 1)); } catch (_) {} };
 if (argvFlag('--no-gpu') || cfg.disableGpu) app.disableHardwareAcceleration();
+
+/* Media keys and the system media overlay. By default Chromium registers Spectral with the operating system's media controls (volume-key flyout, Bluetooth headset buttons, lock screen),
+   and the renderer fills in the song details. The "media overlay" setting turns that registration off at startup; the media keys then still work, through global shortcuts. */
+const MEDIA_OVERLAY = !(() => { const s = readJSON(ud('settings.json'), null); return s && s.mediaOverlay === false; })();
+if (!MEDIA_OVERLAY) app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling,MediaSessionService');
+const MEDIA_KEYS = { MediaPlayPause: 'playpause', MediaNextTrack: 'next', MediaPreviousTrack: 'prev', MediaStop: 'stop' };
+function registerMediaKeys() {
+  if (MEDIA_OVERLAY) return;
+  for (const k in MEDIA_KEYS) { try { globalShortcut.register(k, () => send('sp:media', MEDIA_KEYS[k])); } catch (_) {} }
+}
 
 protocol.registerSchemesAsPrivileged([{ scheme: 'sp', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, corsEnabled: true, bypassCSP: true } }]);
 
@@ -68,8 +82,9 @@ const specKey = abs => byAbs.get(abs.toLowerCase()) || 'abs:' + abs.toLowerCase(
 /* ---------- scanning (worker thread) ---------- */
 let scanning = null, win = null;
 const send = (ch, payload) => { if (win && !win.isDestroyed()) win.webContents.send(ch, payload); };
+let scanAgain = false;
 function startScan() {
-  if (scanning) return;
+  if (scanning) { scanAgain = true; return; }                          // a scan is running: run another when it ends, so changes made meanwhile are not missed
   const known = {}; for (const [k, e] of entries) known[k] = [e[1], e[2]];
   const w = new Worker(path.join(__dirname, 'scanner.js'), { workerData: { roots: cfg.folders, known } });
   scanning = w; const t0 = Date.now();
@@ -88,6 +103,7 @@ function startScan() {
       if (m.removed.length) saveSpecsSoon();
       scanning = null; saveCacheNow();
       send('sp:lib', { removed, done: true, progress: { seen: m.seen, parsed: m.parsed }, total: entries.size, ms: Date.now() - t0, errors: m.errors });
+      if (scanAgain) { scanAgain = false; startScan(); }
     } else if (m.type === 'error') { scanning = null; send('sp:lib', { done: true, error: m.message }); }
   });
   w.on('error', e => { scanning = null; send('sp:lib', { done: true, error: String(e) }); });
@@ -157,12 +173,25 @@ ipcMain.on('sp:settingsSet', (e, s) => {
   settingsDirty = true; clearTimeout(settingsT); settingsT = setTimeout(saveSettingsNow, 400);
 });
 app.on('before-quit', saveSettingsNow);
-ipcMain.on('sp:config', e => { e.returnValue = { playlistDir: cfg.playlistDir, folders: cfg.folders.map(f => f.path), platform: process.platform, dev: DEV }; });
+ipcMain.on('sp:config', e => { e.returnValue = { playlistDir: cfg.playlistDir, folders: cfg.folders.map(f => f.path), platform: process.platform, dev: DEV, firstRun, mediaOverlay: MEDIA_OVERLAY }; });
 ipcMain.handle('sp:loadLibrary', () => {
   const tracks = []; for (const e of entries.values()) { const t = trackOf(e); if (t) tracks.push(t); }
   const sp = {}; for (const [abs, k] of byAbs) if (specs[k]) sp[abs] = specs[k];
   for (const k in specs) if (k.startsWith('abs:')) sp[k.slice(4)] = specs[k];
-  startScan(); return { tracks, specs: sp };
+  if (!firstRun) startScan();                  // on a first run nothing is scanned until the welcome screen has the user's folder
+  return { tracks, specs: sp };
+});
+// End of the welcome screen: remember the chosen folders (the first is the primary and also holds the playlists), then restart the UI so everything picks them up.
+ipcMain.handle('sp:finishWelcome', (e, list) => {
+  list = (Array.isArray(list) ? list : []).filter(p => typeof p === 'string' && p).map(fwd);
+  list = list.filter((p, i) => list.findIndex(q => q.toLowerCase() === p.toLowerCase()) === i);
+  if (!list.length) list = [cfg.folders[0].path];
+  cfg.folders = list.map((p, i) => ({ id: 'r' + (i + 1), path: p }));
+  if (!process.env.SP_PLAYLIST_DIR) cfg.playlistDir = cfg.folders[0].path;
+  cfg.welcomed = true; firstRun = false;
+  entries.clear(); byAbs.clear(); saveConfig(); saveCacheNow();
+  if (win && !win.isDestroyed()) win.webContents.reload();
+  return true;
 });
 ipcMain.handle('sp:rescan', () => { startScan(); });
 ipcMain.handle('sp:listPlaylists', async () => {
@@ -200,6 +229,48 @@ ipcMain.on('sp:putSpec', (e, abs, b64) => { specs[specKey(abs)] = b64; saveSpecs
 ipcMain.handle('sp:resolve', (e, paths) => resolvePaths(paths));
 ipcMain.on('sp:ready', () => { rendererReady = true; if (pendingOpen.length) { send('sp:open', pendingOpen); pendingOpen = []; } });
 ipcMain.handle('sp:reveal', (e, p) => { if (typeof p === 'string' && fs.existsSync(p)) shell.showItemInFolder(path.normalize(p)); });   // native separators: Explorer ignores forward-slash paths
+/* ---------- editing tags (the "Edit tags" dialog); every change is logged so it can be undone ---------- */
+const UNDO_FILE = ud('tag-undo.json');
+let undoLog = readJSON(UNDO_FILE, { batches: [] }); if (!Array.isArray(undoLog.batches)) undoLog = { batches: [] };
+const saveUndo = () => { undoLog.batches = undoLog.batches.slice(-25); try { writeAtomicSync(UNDO_FILE, JSON.stringify(undoLog)); } catch (_) {} };
+let tagBusy = false;
+const tagMsg = e => (e && e.message ? String(e.message) : String(e)).replace(/^\w/, c => c.toUpperCase());
+// items: [{ abs, set }] (set: title, artist, album, albumArtist, track, disc, year; null removes). opts.batch groups several calls into one undo step.
+ipcMain.handle('sp:editTags', async (e, items, opts) => {
+  if (tagBusy) return { error: 'Another tag edit is still running.' };
+  items = (Array.isArray(items) ? items : []).filter(it => it && typeof it.abs === 'string' && path.isAbsolute(it.abs) && it.set && typeof it.set === 'object');
+  opts = opts || {}; tagBusy = true;
+  try {
+    const results = [], files = []; let n = 0;
+    for (const it of items) {
+      const set = {}; for (const k of ['title', 'artist', 'album', 'albumArtist', 'track', 'disc', 'year']) if (k in it.set) set[k] = it.set[k];
+      try { const r = await tagedit.editFile(path.normalize(it.abs), set); results.push({ abs: it.abs, ok: true, changed: r.changed }); if (r.changed) files.push({ abs: it.abs, old: r.old }); }
+      catch (err) { results.push({ abs: it.abs, ok: false, error: tagMsg(err) }); }
+      if (++n % 5 === 0 || n === items.length) send('sp:tagProgress', { done: n, total: items.length });
+    }
+    if (files.length) {
+      let b = opts.batch && undoLog.batches.find(x => x.id === opts.batch);
+      if (!b) { b = { id: opts.batch || ('b' + Date.now()), when: Date.now(), label: String(opts.label || 'tag edit').slice(0, 120), files: [] }; undoLog.batches.push(b); }
+      b.files.push(...files); saveUndo(); startScan();                                   // the scan picks the new tags up for the library
+    }
+    return { results };
+  } finally { tagBusy = false; }
+});
+ipcMain.handle('sp:undoInfo', () => { const b = undoLog.batches[undoLog.batches.length - 1]; return b ? { id: b.id, when: b.when, label: b.label, count: b.files.length, files: b.files.map(f => f.abs) } : null; });
+ipcMain.handle('sp:undoTags', async () => {
+  if (tagBusy) return { error: 'Another tag edit is still running.' };
+  const b = undoLog.batches[undoLog.batches.length - 1]; if (!b) return { error: 'Nothing to undo.' };
+  tagBusy = true;
+  try {
+    const results = []; let n = 0;
+    for (const f of b.files) {
+      try { await tagedit.restoreFile(path.normalize(f.abs), f.old); results.push({ abs: f.abs, ok: true }); } catch (err) { results.push({ abs: f.abs, ok: false, error: tagMsg(err) }); }
+      if (++n % 5 === 0 || n === b.files.length) send('sp:tagProgress', { done: n, total: b.files.length });
+    }
+    undoLog.batches.pop(); saveUndo(); startScan();
+    return { results, label: b.label };
+  } finally { tagBusy = false; }
+});
 ipcMain.handle('sp:metrics', () => app.getAppMetrics().map(m => ({ type: m.type, cpu: m.cpu.percentCPUUsage, mem: m.memory.workingSetSize })));
 
 /* ---------- file serving: sp://app/... (renderer) and sp://t/f?p=<abs path> (audio) ---------- */
@@ -283,8 +354,9 @@ else {
   app.on('second-instance', (e, argv) => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } deliverOpen(argPaths(argv)); });
   app.whenReady().then(() => {
     if (!DEV) Menu.setApplicationMenu(null);
-    registerProtocol(); loadCache(); deliverOpen(argPaths(process.argv)); createWindow();
+    registerProtocol(); loadCache(); registerMediaKeys(); deliverOpen(argPaths(process.argv)); createWindow();
     app.on('activate', () => { if (!win) createWindow(); });
   });
+  app.on('will-quit', () => globalShortcut.unregisterAll());
   app.on('window-all-closed', () => app.quit());
 }
