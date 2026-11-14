@@ -20,7 +20,7 @@ Spectral reads each file's tags (artist, album artist, album, title, track numbe
 |---|---|
 | **Library** (left) | Every artist, album and song, A to Z. Click an artist or album to open it. |
 | **Now Playing** (right, top) | The current song, a small live spectrum, a progress bar (click to seek, or press and drag: the bar and time follow your pointer and the song jumps when you let go; Esc cancels), and the transport buttons: previous, play/pause, next, repeat (off, all, this track), random, mute and volume. |
-| **Playlist tabs** (right, bottom) | **Now Playing** is the queue. Each playlist you open gets its own tab. The **Playlists ▾** button lists them all. |
+| **Playlist tabs** (right, bottom) | **Now Playing** is the queue; its **Clear** button removes everything except the song that is playing. Each playlist you open gets its own tab. The **Playlists ▾** button lists them all. |
 | **Waterfall** (behind everything) | The spectrum of the song, drawn in 3D. |
 
 The line under the library search shows your song and artist counts. The circular arrow next to it rescans your folders for new, changed and removed files.

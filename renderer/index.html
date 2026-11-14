@@ -255,7 +255,7 @@
     </div>
     <div id="pl" class="box">
       <div id="tabbar"><div id="tabs"></div><button id="plSel" class="ic" title="All playlists">Playlists &#9662;</button></div>
-      <div id="plHead"><span id="plTitle"></span><span class="plr"><span id="plInfo"></span><button id="plClear" class="ic" title="Remove every track from Now Playing (stops playback if it is playing from here)">Clear</button></span></div>
+      <div id="plHead"><span id="plTitle"></span><span class="plr"><span id="plInfo"></span><button id="plClear" class="ic" title="Remove every track from Now Playing except the one that is playing">Clear</button></span></div>
       <div id="plList" class="vlist"></div>
     </div>
   </div>
@@ -1229,13 +1229,14 @@ function openTagEditor(all, mode, name) {
   card.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape' && !tagUI.busy) closeTagEd(); else if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type === 'text' && !save.disabled) { e.preventDefault(); save.click(); } });
   refresh(); tagEd.classList.add('open'); const first = F[0].inp; first.focus(); first.select();
 }
-// Playback and files: a rewritten MP3 can shift the audio inside the file, so the playing song is written first, then reloaded where it was
+// Windows cannot replace a file that is open, and the song that is playing (or paused) is open in the audio player. So if it is in the batch, playback lets go of it first, and picks up again from the same spot afterwards.
 async function withPlayingFileSafe(inList, fn) {
   const cur = P.track && !P.virtual && P.track.abs ? P.track : null, a = audioEl;
   const hit = cur && inList(cur.abs.toLowerCase());
   dropPre(); G.armed = null;
   if (!hit) return fn();
-  const pos = curTime(), was = !isPaused(); a.pause();
+  const pos = curTime(), was = !isPaused(); a.pause(); a.removeAttribute('src'); try { a.load(); } catch (_) {}
+  await new Promise(r => setTimeout(r, 300));                                    // give the player a moment to close the file
   try { return await fn(); }
   finally {
     if (P.track === cur) { a.src = host.trackUrl(cur); a.addEventListener('loadedmetadata', () => { try { a.currentTime = pos; } catch (_) {} if (was) { const p = a.play(); if (p && p.catch) p.catch(() => {}); } updateTransport(); }, { once: true }); }
@@ -1444,18 +1445,27 @@ function renderHead() {
   $('#plInfo').textContent = p.tracks.length.toLocaleString() + ' track' + (p.tracks.length === 1 ? '' : 's') + (secs ? ' · ' + fmt(secs) : '') + (p.special ? '' : '  ·  saved automatically');
   $('#plClear').style.display = p.special && p.tracks.length ? 'inline-block' : 'none';       // only on Now Playing, and only when there is something to clear
 }
-function clearNP(quiet) {
+// keepPlaying (the Clear button): the song playing from Now Playing stays, and plays on, as the only entry. Without it (the "double-click replaces Now Playing" option) everything goes and playback stops.
+function clearNP(quiet, keepPlaying) {
   const np = PL.all.get(NP_NAME), n = np.tracks.length; if (!n) return;
-  if (P.list === np) {                                      // playing from Now Playing: clearing it stops playback (playing from a saved playlist is left alone)
-    dropPre(); stopFileAudio(); stopDemo();
-    for (const a of AUD) { try { a.removeAttribute('src'); a.load(); } catch (_) {} }
-    P.track = null; P.list = null; P.idx = -1; P.orphan = false; P.virtual = false; P.vpaused = false; P.ended = false; P.errs = 0; onTrackChanged();
+  let keep = null;
+  if (P.list === np) {
+    if (keepPlaying && P.track) {
+      if (!P.orphan && np.tracks[P.idx] === P.track) keep = P.track; else { P.orphan = true; P.idx = -1; }      // (a playing song already removed from the list just carries on)
+      if (keep && n === 1) { if (!quiet) showMsg('Nothing else to clear'); return; }
+      dropPre();
+    } else {                                                // clearing everything stops playback (playing from a saved playlist is left alone)
+      dropPre(); stopFileAudio(); stopDemo();
+      for (const a of AUD) { try { a.removeAttribute('src'); a.load(); } catch (_) {} }
+      P.track = null; P.list = null; P.idx = -1; P.orphan = false; P.virtual = false; P.vpaused = false; P.ended = false; P.errs = 0; onTrackChanged();
+    }
   }
   P.hist = P.hist.filter(h => h.list !== np); P.bag = null; P.pre = null;
-  np.tracks = []; np.sel = new Set(); np.anchor = -1; np.scroll = 0; savePL(np); showList(); refreshPlaylistView();
-  if (!quiet) showMsg('Cleared Now Playing (' + n.toLocaleString() + ' track' + (n === 1 ? '' : 's') + ')');
+  np.tracks = keep ? [keep] : []; if (keep) P.idx = 0; np.sel = new Set(); np.anchor = -1; np.scroll = 0; savePL(np); showList(); refreshPlaylistView();
+  const gone = n - (keep ? 1 : 0);
+  if (!quiet) showMsg(keep ? 'Cleared ' + gone.toLocaleString() + ' track' + (gone === 1 ? '' : 's') + ' from Now Playing (the current song stays)' : 'Cleared Now Playing (' + n.toLocaleString() + ' track' + (n === 1 ? '' : 's') + ')');
 }
-$('#plClear').onclick = () => { clearNP(); $('#plClear').blur(); };
+$('#plClear').onclick = () => { clearNP(false, true); $('#plClear').blur(); };
 function showList(keep) {
   const p = activeList(); renderTabs(); renderHead(); plList.setCount(p.tracks.length, keep);
 }

@@ -239,15 +239,25 @@ async function precheck(abs) {
   try { await fsp.access(abs, fs.constants.W_OK); } catch (_) { throw fail('readonly', 'the file is read-only'); }
   return ext;
 }
+// A file another program (or our own audio player) has open cannot be replaced on Windows; that clears up when the player lets go, so a few quick retries are made before giving up.
+const inUse = e => e && /^(EBUSY|EPERM|EACCES)$/.test(e.code);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const busyError = () => fail('inuse', 'the file is in use by another program (stop playing it, or close whatever has it open, and try again)');
+async function retrying(fn) {
+  for (let i = 0; ; i++) {
+    try { return await fn(); }
+    catch (e) { if (inUse(e) && i < 5) { await sleep(200 * (i + 1)); continue; } if (inUse(e)) throw busyError(); throw e; }
+  }
+}
 async function editFile(abs, set) {
   const ext = await precheck(abs);
-  try { return ext === '.mp3' ? await editMp3(abs, set) : await editOther(abs, set); }
+  try { return await retrying(() => (ext === '.mp3' ? editMp3(abs, set) : editOther(abs, set))); }
   catch (e) { if (e.code) throw e; throw fail('write', (e && e.message) || String(e)); }
 }
 async function restoreFile(abs, old) {
   if (!old) return;
   await precheck(abs);
-  try { return old.kind === 'id3' ? await restoreMp3(abs, old) : await restoreOther(abs, old); }
+  try { return await retrying(() => (old.kind === 'id3' ? restoreMp3(abs, old) : restoreOther(abs, old))); }
   catch (e) { if (e.code) throw e; throw fail('write', (e && e.message) || String(e)); }
 }
 

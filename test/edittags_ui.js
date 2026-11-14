@@ -19,6 +19,9 @@ let bad = 0; const chk = (n, c, x) => { console.log((c ? 'PASS ' : 'FAIL ') + n 
   const gname = g[0][4] || g[0][3], mp3s = g.map(e => copy(e, 'Group')), others = [];
   const one = ext => lib.e.find(e => e[0].toLowerCase().endsWith(ext) && small(e) && !groups.has((e[4] || e[3]).toLowerCase()));
   for (const ext of ['.flac', '.m4a', '.wma']) { const e = lib.e.filter(x => x[0].toLowerCase().endsWith(ext) && small(x))[3]; if (e) others.push(copy(e, 'Other ' + ext.slice(1))); }
+  const tl = lib.e.find(x => /\.mp3$/i.test(x[0]) && small(x)), tlSrc = fs.readFileSync(abs(tl)); fs.mkdirSync(path.join(root, 'Untagged'));
+  const tlTag = tlSrc.toString('latin1', 0, 3) === 'ID3' ? 10 + (((tlSrc[6] & 127) << 21) | ((tlSrc[7] & 127) << 14) | ((tlSrc[8] & 127) << 7) | (tlSrc[9] & 127)) : 0;
+  const untagged = path.join(root, 'Untagged', 'Untagged Song.mp3'); fs.writeFileSync(untagged, tlSrc.subarray(tlTag, tlTag + 1500000));          // audio only: there is no room in the file for a tag
   fs.writeFileSync(path.join(data, 'config.json'), JSON.stringify({ folders: [{ id: 'r1', path: root.replace(/\\/g, '/') }], playlistDir: root.replace(/\\/g, '/'), welcomed: true }));
   fs.writeFileSync(path.join(data, 'settings.json'), JSON.stringify({ vol: 0 }));
   const tagsOf = async f => { const m = await mm.parseFile(f, { skipCovers: false }); return m; };
@@ -106,6 +109,20 @@ let bad = 0; const chk = (n, c, x) => { console.log((c ? 'PASS ' : 'FAIL ') + n 
   await dlg().locator('input[type=text]').nth(5).fill('5'); await dlg().locator('button.go').click(); await page.waitForFunction(() => document.querySelector('#tagEd .res') && document.querySelector('#tagEd .res').style.display !== 'none', null, { timeout: 30000 }); await sleep(300);
   const rtxt = await page.locator('#tagEd .res').textContent(); chk('failure summary names the file and the reason', /1 file changed, 1 not changed/.test(rtxt) && /read-only/.test(rtxt), rtxt.slice(0, 160));
   await dlg().locator('button.go').click(); fs.chmodSync(ro, 0o666); await sleep(300);
+
+  // 5b. an untagged file (no ID3 tag, no padding) that is playing: the file has to be rewritten, so playback must let go of it first
+  await page.evaluate(() => { const t = __sp.LIB.tracks.find(t => /Untagged Song/.test(t.abs)); __sp.addToNP([t], true); }); await sleep(2000);
+  await page.evaluate(() => { __sp.audioEl.currentTime = 14; }); await sleep(800);
+  const ui = await page.evaluate(() => { const np = __sp.PL.all.get('Now Playing'); return np.tracks.findIndex(t => /Untagged Song/.test(t.abs)); });
+  await page.evaluate(i => __sp.plList.scrollTo(i), ui); await sleep(300);
+  await page.locator('#plList .row[data-i="' + ui + '"]').click({ button: 'right' }); await sleep(200); await page.locator('.menu .mi', { hasText: 'Edit tags' }).click(); await sleep(300);
+  await dlg().locator('input[type=text]').nth(0).fill('Now It Has A Title'); await dlg().locator('input[type=text]').nth(3).fill('Some Artist');
+  await dlg().locator('button.go').click(); await page.waitForFunction(() => !document.querySelector('#tagEd.open') || (document.querySelector('#tagEd .res') && document.querySelector('#tagEd .res').style.display !== 'none'), null, { timeout: 30000 }); await sleep(1200);
+  const utxt = await page.evaluate(() => (document.querySelector('#tagEd .res') || { textContent: '' }).textContent);
+  const um = await tagsOf(untagged); chk('untagged file edited while playing (the file had to be rewritten)', um.common.title === 'Now It Has A Title' && um.common.albumartist === 'Some Artist', utxt || (um.common.title + ' / ' + um.common.albumartist));
+  const up = await page.evaluate(() => ({ paused: __sp.audioEl.paused, pos: __sp.audioEl.currentTime, err: !!__sp.audioEl.error, title: __sp.P.track && __sp.P.track.title }));
+  chk('...and it carried on from where it was', !up.paused && !up.err && up.pos > 12 && up.pos < 24, JSON.stringify(up));
+  chk('no temporary files left in that folder', fs.readdirSync(path.join(root, 'Untagged')).every(f => !/sp-tmp/.test(f)));
 
   // 6. formats we do not edit; settings undo
   const wma = others.find(f => /\.wma$/i.test(f)); if (wma) { await page.evaluate(n => __sp.addToNP(__sp.LIB.tracks.filter(t => /\.wma$/i.test(t.abs)), false), 0); await sleep(300); const n = await page.locator('#plList .row.pr').count(); await page.locator('#plList .row.pr >> nth=' + (n - 1)).click({ button: 'right' }); await sleep(200); const items = page.locator('.menu .mi', { hasText: 'Edit tags' }); chk('WMA: Edit tags… is greyed out', (await items.getAttribute('class')).includes('dis')); await page.mouse.click(700, 8); }
