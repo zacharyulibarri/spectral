@@ -51,6 +51,7 @@ Click a row to select it. **Ctrl+click** and **Shift+click** select several; **C
 
 **On library items (artist, album, song):**
 - **Add to Now Playing and play**
+- **Play Next**: inserts it right after the song that is playing now, in the list that song is playing from. With nothing playing it just starts playing. (Also on songs in a playlist, where it adds a copy.)
 - **Queue at end of Now Playing**
 - **Add to playlist** (an existing one, or a new one)
 - **Show in File Browser**

@@ -1337,6 +1337,7 @@ libEl.addEventListener('contextmenu', e => {
   const plItems = [...PL.all.values()].filter(p => !p.special).sort((a, b) => COLL.compare(a.name, b.name)).map(p => ({ label: p.name, fn: () => { insertTracks(p, tracks); showMsg('Added ' + n + ' to “' + p.name + '”'); } }));
   showMenu(e.clientX, e.clientY, [
     { label: 'Add to Now Playing and play', fn: () => addToNP(tracks, true) },
+    { label: 'Play Next', fn: () => playNext(tracks) },
     { label: 'Queue at end of Now Playing', fn: () => addToNP(tracks, false) },
     { sep: true },
     { label: 'Add to playlist', sub: [...plItems, ...(plItems.length ? [{ sep: true }] : []), { label: 'New playlist…', fn: () => newPlaylist(tracks) }] },
@@ -1411,6 +1412,14 @@ function addToNP(tracks, play, at) {
   const np = PL.all.get(NP_NAME), start = at === undefined ? np.tracks.length : at;
   insertTracks(np, tracks, start);
   if (play) { activate(NP_NAME); playFrom(np, start); np.sel = new Set(); plList.reveal(start); }
+}
+function playNext(tracks) {                                   // right after the current song, in the list it is playing from
+  tracks = tracks.filter(t => t && !t.missing); if (!tracks.length) return;
+  if (!P.track || !P.list || ![...PL.all.values()].includes(P.list)) { addToNP(tracks, true); return; }   // nothing playing: just play them
+  const L = P.list, at = P.idx + 1;
+  insertTracks(L, tracks, at);
+  if (S.shuffle) { P.jump = null; setJump(L, at); }           // random order would not pick them next on its own, so queue the first one explicitly
+  else showMsg(tracks.length === 1 ? '“' + (tracks[0].title || 'track') + '” plays next' : tracks.length + ' songs play next');
 }
 function removeFrom(p, idxs) {
   const set = new Set(idxs), keep = []; let before = 0, hit = false;
@@ -1538,6 +1547,7 @@ plEl.addEventListener('contextmenu', e => {
     P.jump && jumpTarget() === P.jump && P.jump.list === p && P.jump.idx === idxs[0]
       ? { label: 'Cancel Jump Here Next', fn: clearJump }
       : { label: 'Jump Here Next', disabled: !!tracks[0].missing, fn: () => setJump(p, idxs[0]) },
+    { label: 'Play Next' + (n > 1 ? ' (' + n + ')' : '') + '  — copies after the current song', disabled: tracks.every(t => t.missing), fn: () => playNext(tracks) },
     { sep: true },
     { label: 'Copy to playlist', sub: sub(copy) },
     { label: 'Move to playlist', sub: sub(move) },
@@ -2091,7 +2101,7 @@ window.__sp = {
   PROF, startDemo, S, setS, P, PL, LIB, host, G, AUD, get amps() { return curA; }, get actx() { return actx; }, get analyser() { return analyser; }, get audioEl() { return audioEl; }, playFrom, addToNP, activeList, libList, plList, toM3U, parsePlaylistText, relPath, resolvePath,
   get flat() { return flat; }, get cam() { return [Px, Py, Pz, camYaw / DEG, camRoll / DEG]; },
   get stats() { return { W, H, qual, msAvg, dtAvg, dotCount, frames, rate: S.rate, speed, shot: shot.idx, shotAge: simT - shot.t0 }; },
-  setJump, jumpTarget, mediaAction, cycleScheme, addRandom, showWelcome, get media() { return MSESS && { md: MSESS.metadata && { title: MSESS.metadata.title, artist: MSESS.metadata.artist, album: MSESS.metadata.album }, state: MSESS.playbackState }; }, SCHEMES, get curSch() { return curSch; }, set curSch(v) { curSch = v; },
+  setJump, jumpTarget, mediaAction, cycleScheme, addRandom, playNext, showWelcome, get media() { return MSESS && { md: MSESS.metadata && { title: MSESS.metadata.title, artist: MSESS.metadata.artist, album: MSESS.metadata.album }, state: MSESS.playbackState }; }, SCHEMES, get curSch() { return curSch; }, set curSch(v) { curSch = v; },
   setShot(i) { cutTo(i); shot.dur = 1e9; }, fixQuality(q) { adapt = false; qual = q; resize(); },
 };
 
