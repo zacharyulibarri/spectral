@@ -95,6 +95,8 @@ Edited fields are highlighted, and the form says how many files will change. **S
 | **A–Z, 0–9** | Jump to an artist |
 | **Ctrl+H** | Hide / show the lists, to see the waterfall |
 | **Ctrl+L** | Cycle waterfall → light → dark mode |
+| **Ctrl+T** | Next colour scheme for the waterfall (cycles the schemes ticked in Settings) |
+| **Ctrl+B** | Blue ↔ black waterfall background |
 | **Ctrl+,** | Settings |
 | **Ctrl+O** | Open audio files |
 | **Ctrl+D** | Performance stats |
@@ -120,7 +122,8 @@ Changes apply immediately and are remembered.
 
 **Motion, Colour schemes, Look**
 - How fast the waterfall flows, camera motion and shot length, ball size, spectrum height and log scaling, reflections, grid and text.
-- **Colour schemes**: every new song picks one of the ticked schemes at random. Untick the ones you do not like.
+- **Colour schemes**: every new song picks one of the ticked schemes at random. Untick the ones you do not like. **Ctrl+T** switches to the next scheme by hand.
+- **Black background** (also **Ctrl+B**): plain black instead of the blue backdrop.
 
 **Performance**
 - **Frame-rate cap** and **Adaptive resolution**. A lower cap uses less CPU. For the lowest power use, press **Ctrl+L** to switch to light or dark mode, which stops drawing the waterfall entirely.

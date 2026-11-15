@@ -13,6 +13,8 @@
   #ui { position:fixed; inset:0; pointer-events:none; font-size:calc(var(--rh) * .6); letter-spacing:.03em; text-shadow:0 0 5px rgba(0,0,0,.9); user-select:none; -webkit-user-select:none; }
   #ui > * { pointer-events:auto; }
   #head { position:absolute; left:3%; top:3.4%; font-size:calc(var(--rh) * .8); font-weight:600; pointer-events:none; }
+  html.bgblack, html.bgblack body { background:#000; }
+  html.bgblack .box { background:rgba(0,0,0,var(--ua)); }
   .box { background:rgba(3,6,18,var(--ua)); border:1px solid rgba(160,185,255,.16); box-sizing:border-box; }
   button { font:inherit; font-weight:600; letter-spacing:.08em; color:#e8eeff; background:rgba(120,150,255,.14); border:1px solid rgba(190,210,255,.55); padding:.6em 1.3em; cursor:pointer; border-radius:2px; font-size:clamp(13px,1.3vw,17px); }
   button:hover { background:rgba(150,180,255,.28); }
@@ -267,6 +269,8 @@
     <span><b>A&ndash;Z</b>Jump to artist</span>
     <span><b>Ctrl+H</b>Show / hide lists</span>
     <span><b>Ctrl+L</b>Waterfall / light / dark</span>
+    <span><b>Ctrl+T</b>Colour scheme</span>
+    <span><b>Ctrl+B</b>Blue / black background</span>
     <span><b>Ctrl+D</b>Stats</span>
   </div>
   <div id="stats"></div>
@@ -304,7 +308,7 @@ const ZMAX = NR * CFG.DZ, HALFW = NB * CFG.DX / 2;
 
 /* ======================= settings (persisted) ======================= */
 const DEF = { rate: 40, camMotion: 1, shotLen: 1, cutColor: true, ballSize: 0.8, reflect: 0.55, grid: 0.95, lines: true, text: true, flat: false, adaptive: true,
-  theme: 'waterfall', logScale: true, logRange: 20, hGain: 2.2, cs_rainbow: true, cs_winter: true, cs_cyanPink: true, cs_pinkCyan: true, cs_blue: true, cs_blueOr: true, cs_orBlue: true, gapless: true, autoClear: false, mediaOverlay: true, vol: 0.8, muted: false, repeat: 0, shuffle: false, uiAlpha: 0.55, textSize: 1, ignoreThe: true, fpsCap: 60, collapsed: false, folders: [] };
+  theme: 'waterfall', logScale: true, logRange: 20, hGain: 2.2, cs_rainbow: true, cs_winter: true, cs_cyanPink: true, cs_pinkCyan: true, cs_blue: true, cs_blueOr: true, cs_orBlue: true, gapless: true, autoClear: false, mediaOverlay: true, bgBlack: false, vol: 0.8, muted: false, repeat: 0, shuffle: false, uiAlpha: 0.55, textSize: 1, ignoreThe: true, fpsCap: 60, collapsed: false, folders: [] };
 const S = Object.assign({}, DEF); S.folders = [];
 const SKEY = 'spectral.settings.v2';
 // Settings live in settings.json in the app-data folder (written by the desktop shell); localStorage is only the fallback for a browser preview.
@@ -337,6 +341,7 @@ function resize() {
 function buildBackground() {
   bgC.width = Math.round(W * 1.3); bgC.height = H;
   const w = bgC.width;
+  if (S.bgBlack) { bgx.fillStyle = '#000'; bgx.fillRect(0, 0, w, H); return; }           // Ctrl+B: plain black instead of the blue backdrop
   const g = bgx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, '#060a1e'); g.addColorStop(0.42, '#121b4a'); g.addColorStop(0.58, '#16205a'); g.addColorStop(1, '#080d26');
   bgx.fillStyle = g; bgx.fillRect(0, 0, w, H);
@@ -392,6 +397,13 @@ function pickScheme(force) {                                          // random 
   if (!force && on.length > 1) { const k = on.indexOf(curSch); if (k >= 0) on.splice(k, 1); }
   curSch = on[Math.floor(Math.random() * on.length)];
 }
+function cycleScheme() {                                              // Ctrl+T: the next colour scheme (among the ticked ones; all of them when fewer than two are ticked); new colours come out of the emitter and flow in
+  let pool = []; SCHEMES.forEach((sc, i) => { if (S['cs_' + sc.id]) pool.push(i); });
+  if (pool.length < 2) pool = SCHEMES.map((_, i) => i);
+  const k = pool.indexOf(curSch); curSch = pool[(k + 1) % pool.length];       // (k = -1 when the current one is not in the pool: start at the first)
+  showMsg('Colours: ' + SCHEMES[curSch].label);
+}
+function applyBg() { document.documentElement.classList.toggle('bgblack', !!S.bgBlack); if (W) buildBackground(); }
 
 /* ======================= audio ======================= */
 let actx = null, analyser = null, fftBytes = null, synthOut = null, binLo = null, binHi = null;
@@ -1849,6 +1861,7 @@ function drawBars() {
   }
 }
 function drawHaze() {
+  if (S.bgBlack) return;
   // thin glow along the horizon, tilted with the camera roll
   const D = 6000, dxh = Math.sin(camYaw) * D, dzh = -Math.cos(camYaw) * D;
   const x1 = dxh, z1 = dzh, x2 = dxh + Math.cos(camYaw) * D * 0.2, z2 = dzh + Math.sin(camYaw) * D * 0.2;
@@ -2024,6 +2037,8 @@ addEventListener('keydown', e => {
     switch (e.key.toLowerCase()) {
       case 'h': e.preventDefault(); toggleCollapse(); break;
       case 'l': { e.preventDefault(); const nx = { waterfall: 'light', light: 'dark', dark: 'waterfall' }[S.theme] || 'waterfall'; setS('theme', nx); showMsg(nx === 'waterfall' ? 'Waterfall mode' : (nx === 'light' ? 'Light mode' : 'Dark mode')); break; }
+      case 't': e.preventDefault(); if (S.theme !== 'waterfall') showMsg('Colour schemes show in waterfall mode (Ctrl+L)'); else cycleScheme(); break;
+      case 'b': e.preventDefault(); if (S.theme !== 'waterfall') showMsg('The background colour applies in waterfall mode (Ctrl+L)'); else { setS('bgBlack', !S.bgBlack); showMsg(S.bgBlack ? 'Black background' : 'Blue background'); } break;
       case 'd': e.preventDefault(); showStats = !showStats; $('#stats').style.display = showStats ? 'block' : 'none'; break;
       case 'arrowright': e.preventDefault(); seekBy(15); break;
       case 'arrowleft': e.preventDefault(); seekBy(-15); break;
@@ -2052,7 +2067,7 @@ window.__sp = {
   PROF, startDemo, S, setS, P, PL, LIB, host, G, AUD, get amps() { return curA; }, get actx() { return actx; }, get analyser() { return analyser; }, get audioEl() { return audioEl; }, playFrom, addToNP, activeList, libList, plList, toM3U, parsePlaylistText, relPath, resolvePath,
   get flat() { return flat; }, get cam() { return [Px, Py, Pz, camYaw / DEG, camRoll / DEG]; },
   get stats() { return { W, H, qual, msAvg, dtAvg, dotCount, frames, rate: S.rate, speed, shot: shot.idx, shotAge: simT - shot.t0 }; },
-  setJump, jumpTarget, mediaAction, showWelcome, get media() { return MSESS && { md: MSESS.metadata && { title: MSESS.metadata.title, artist: MSESS.metadata.artist, album: MSESS.metadata.album }, state: MSESS.playbackState }; }, SCHEMES, get curSch() { return curSch; }, set curSch(v) { curSch = v; },
+  setJump, jumpTarget, mediaAction, cycleScheme, showWelcome, get media() { return MSESS && { md: MSESS.metadata && { title: MSESS.metadata.title, artist: MSESS.metadata.artist, album: MSESS.metadata.album }, state: MSESS.playbackState }; }, SCHEMES, get curSch() { return curSch; }, set curSch(v) { curSch = v; },
   setShot(i) { cutTo(i); shot.dur = 1e9; }, fixQuality(q) { adapt = false; qual = q; resize(); },
 };
 
@@ -2170,7 +2185,7 @@ function showWelcome(first) {
   card.appendChild(el('h3', '', 'GOOD TO KNOW'));
   const tips = el('div', 'tips');
   for (const [k, v] of [['Space', 'Play / pause'], ['← →', 'Previous / next track'], ['Ctrl + ← →', 'Back / forward 15 seconds'], ['↑ ↓', 'Volume'], ['Ctrl + F  or  /', 'Search the library'],
-      ['Double-click', 'Play an artist, album or song'], ['Drag', 'Add to Now Playing or a playlist'], ['Right-click', 'More actions on a song'], ['Ctrl + H', 'Hide the lists'], ['Ctrl + L', 'Waterfall, light and dark modes'], ['Ctrl + ,', 'Settings']]) {
+      ['Double-click', 'Play an artist, album or song'], ['Drag', 'Add to Now Playing or a playlist'], ['Right-click', 'More actions on a song'], ['Ctrl + H', 'Hide the lists'], ['Ctrl + L', 'Waterfall, light and dark modes'], ['Ctrl + T', 'Next colour scheme'], ['Ctrl + B', 'Blue or black background'], ['Ctrl + ,', 'Settings']]) {
     tips.appendChild(el('b', '', k)); tips.appendChild(el('span', '', v));
   }
   card.appendChild(tips);
@@ -2200,6 +2215,7 @@ const SCHEMA = [
   { sec: 'Colour schemes' },
   ...SCHEMES.map((sc, i) => ({ k: 'cs_' + sc.id, label: sc.label, bool: true, note: i === 0 ? 'Every new song picks one of the ticked schemes at random. With none ticked, Rainbow is used.' : undefined })),
   { sec: 'Look' },
+  { k: 'bgBlack', label: 'Black background', bool: true, note: 'Plain black instead of the blue backdrop. Ctrl+B toggles it.' },
   { k: 'ballSize', label: 'Ball size', min: 0.5, max: 1.8, step: 0.05, fmt: v => v.toFixed(2) + '\u00d7' },
   { k: 'logScale', label: 'Log spectrum height (dB)', bool: true, note: 'Heights follow level in dB relative to the loudest band: quiet bands sink and peaks stand out, so the waterfall has more structure.' },
   { k: 'logRange', label: 'Log range', min: 5, max: 70, step: 1, fmt: v => v + ' dB', note: 'Smaller = more contrast between peaks and valleys. Only used by log height.' },
@@ -2245,6 +2261,7 @@ function onSetting(k) {
   else if (k === 'gapless' && !S.gapless) dropPre();
   else if (k === 'mediaOverlay') { syncMedia(); if (host.desktop && !!S.mediaOverlay !== host.mediaOverlay) showMsg('Restart Spectral for the media overlay change to take full effect'); }
   else if (k === 'theme') applyTheme();
+  else if (k === 'bgBlack') applyBg();
   else if (k.startsWith('cs_') && !S['cs_' + SCHEMES[curSch].id]) pickScheme(true);   // the scheme in use was just unticked: switch now
 }
 const SKEEP = ['rate', 'camMotion'];                      // (all keys are persisted; this list is only documentation)
@@ -2298,7 +2315,7 @@ function buildPanel() {
     panel.appendChild(row);
   }
   const rs = el('button', 'sm', 'RESET TO DEFAULTS'); rs.style.marginTop = '14px';
-  rs.onclick = () => { const f = S.folders; Object.assign(S, DEF); S.folders = f; for (const k of ['rate', 'adaptive', 'uiAlpha', 'ignoreThe', 'vol', 'theme']) onSetting(k); saveS(); syncPanel(); syncButtons(); rs.blur(); };
+  rs.onclick = () => { const f = S.folders; Object.assign(S, DEF); S.folders = f; for (const k of ['rate', 'adaptive', 'uiAlpha', 'ignoreThe', 'vol', 'theme', 'bgBlack']) onSetting(k); saveS(); syncPanel(); syncButtons(); rs.blur(); };
   panel.appendChild(rs);
 }
 function togglePanel(on) { const open = on === undefined ? !panel.classList.contains('open') : on; panel.classList.toggle('open', open); gear.classList.toggle('on', open); }
@@ -2308,7 +2325,7 @@ buildPanel(); syncPanel(); applyRate(S.rate);
 
 cutTo(0);
 resize(); initApp();
-applyTheme();
+applyTheme(); applyBg();
 requestAnimationFrame(frame);
 })();
 </script>
