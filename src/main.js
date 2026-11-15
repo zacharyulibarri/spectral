@@ -162,7 +162,7 @@ function deliverOpen(paths) {
   }, 600);
 }
 
-/* user settings (display, colour, motion, volume...): settings.json, written atomically shortly after every change and again on quit */
+/* user settings (display, color, motion, volume...): settings.json, written atomically shortly after every change and again on quit */
 const SETTINGS_FILE = ud('settings.json');
 let settings = readJSON(SETTINGS_FILE, null), settingsT = 0, settingsDirty = false;
 function saveSettingsNow() { clearTimeout(settingsT); if (!settingsDirty) return; settingsDirty = false; try { writeAtomicSync(SETTINGS_FILE, JSON.stringify(settings, null, 1)); } catch (_) {} }
@@ -199,7 +199,7 @@ ipcMain.handle('sp:listPlaylists', async () => {
   const out = []; for (const n of names.sort((a, b) => a.localeCompare(b))) { try { out.push({ name: n.replace(/\.m3u$/i, ''), text: decodeText(await fsp.readFile(path.join(cfg.playlistDir, n))) }); } catch (_) {} }
   return out;
 });
-const plQueue = new Map();                 // serialise writes per playlist
+const plQueue = new Map();                 // serialize writes per playlist
 function plSerial(name, fn) { const prev = plQueue.get(name) || Promise.resolve(), next = prev.then(fn, fn); plQueue.set(name, next.catch(() => {})); return next; }
 ipcMain.handle('sp:savePlaylist', (e, name, text) => plSerial(name, async () => { await backupOnce(name); await writeAtomic(plFile(name), text); }));
 ipcMain.handle('sp:renamePlaylist', (e, a, b) => plSerial(a, async () => { try { await fsp.rename(plFile(a), plFile(b)); } catch (_) {} }));

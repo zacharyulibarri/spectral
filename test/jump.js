@@ -24,7 +24,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await nearEnd(); await sleep(5000); console.log('next one continues    ', JSON.stringify(await st()), '<- expect idx 5');
   // cancel
   await menuClick(7, 'Jump Here Next'); console.log('marked 7              ', JSON.stringify(await st()));
-  await menuClick(7, 'Cancel Jump Here Next'); console.log('cancelled             ', JSON.stringify(await st()));
+  await menuClick(7, 'Cancel Jump Here Next'); console.log('canceled             ', JSON.stringify(await st()));
   // manual Next button honours it, and replacing a mark works
   await menuClick(7, 'Jump Here Next'); await menuClick(1, 'Jump Here Next'); console.log('replaced 7 by 1       ', JSON.stringify(await st()));
   await page.click('#bNext'); await sleep(1500); console.log('Next button           ', JSON.stringify(await st()), '<- expect idx 1');

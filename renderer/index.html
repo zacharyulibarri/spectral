@@ -33,6 +33,8 @@
   #libRefresh:disabled { opacity:.5; cursor:default; }
   #libRefresh.busy svg { animation:spin 1s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
+  #libRandom { margin:0 .55em .45em; padding:.3em .6em; font-size:.82em; letter-spacing:.06em; font-weight:500; display:flex; align-items:center; justify-content:center; gap:.55em; border-color:rgba(190,210,255,.4); }
+  #libRandom svg { width:1.15em; height:1.15em; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 
   /* virtual lists */
   .vlist { position:relative; overflow-y:auto; overflow-x:hidden; flex:1; min-height:0; scrollbar-width:thin; scrollbar-color:rgba(190,205,255,.4) transparent; }
@@ -151,6 +153,10 @@
   #panel button.sm { font-size:12px; padding:.2em .7em; letter-spacing:.06em; }
   #panel .fl { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; padding:2px 0; word-break:break-all; }
   #panel .fadd { display:flex; gap:6px; margin-top:6px; }
+  #panel .numrow { display:flex; align-items:center; gap:8px; margin-top:4px; }
+  #panel .numrow input { width:6.5em; font:inherit; font-size:14px; color:#eaf0ff; background:rgba(255,255,255,.08); border:1px solid rgba(170,195,255,.35); padding:2px 6px; outline:none; user-select:text; -webkit-user-select:text; }
+  #panel .numrow input:focus { border-color:rgba(190,210,255,.85); }
+  #panel .numrow .unit { opacity:.65; font-size:13px; }
   #welcome, #tagEd { position:fixed; inset:0; z-index:40; display:none; align-items:center; justify-content:center; background:rgba(2,4,12,.72); }
   #welcome.open, #tagEd.open { display:flex; }
   #welcome .card, #tagEd .card { width:min(520px,92vw); max-height:92vh; overflow:auto; box-sizing:border-box; padding:22px 26px 20px; background:rgba(6,10,28,.97); border:1px solid rgba(170,195,255,.45); font-size:15px; letter-spacing:.03em; line-height:1.4; }
@@ -195,6 +201,7 @@
   html[data-theme] .tb { background:none; color:var(--fg); }
   html[data-theme] .tb:hover { background:var(--soft); }
   html[data-theme] .tb.tog.on { color:var(--fg); filter:none; }
+  html[data-theme] #panel .numrow input { color:var(--fg); background:var(--soft); border-color:var(--line); }
   html[data-theme] #q, html[data-theme] #panel .fadd input { color:var(--fg); background:var(--soft); border-color:var(--line); }
   html[data-theme] #q:focus { border-color:var(--fg); background:var(--soft); }
   html[data-theme] #q::placeholder { color:var(--fg); opacity:.45; }
@@ -235,6 +242,7 @@
   <div id="lib" class="box">
     <div class="search"><input id="q" type="text" placeholder="Search artists, albums, songs&hellip;" spellcheck="false" autocomplete="off"><button id="qx" class="ic" title="Clear search">&times;</button></div>
     <div id="libInfo"><span id="libInfoTx">&nbsp;</span><button id="libRefresh" class="ic" title="Rescan the library for new, changed and removed files"><svg viewBox="0 0 20 20"><path d="M16.5 10a6.5 6.5 0 1 1-2-4.7"/><path d="M16.8 3v3.6h-3.6"/></svg></button></div>
+    <button id="libRandom" title="Add songs drawn at random from the whole library to Now Playing and start playing"></button>
     <div id="libList" class="vlist"></div>
   </div>
   <div id="right">
@@ -262,15 +270,15 @@
     </div>
   </div>
   <div id="hints">
-    <span><b>Space</b>Play / Pause</span>
-    <span><b>&larr; &rarr;</b>Prev / Next track</span>
+    <span><b>Space</b>Play/Pause</span>
+    <span><b>&larr; &rarr;</b>Prev/Next</span>
     <span><b>Ctrl+&larr; &rarr;</b>&plusmn;15 s</span>
     <span><b>&uarr; &darr;</b>Volume</span>
-    <span><b>A&ndash;Z</b>Jump to artist</span>
-    <span><b>Ctrl+H</b>Show / hide lists</span>
-    <span><b>Ctrl+L</b>Waterfall / light / dark</span>
-    <span><b>Ctrl+T</b>Colour scheme</span>
-    <span><b>Ctrl+B</b>Blue / black background</span>
+    <span><b>A&ndash;Z</b>Artist</span>
+    <span><b>Ctrl+H</b>Hide UI</span>
+    <span><b>Ctrl+L</b>Mode</span>
+    <span><b>Ctrl+T</b>Colors</span>
+    <span><b>Ctrl+B</b>Background</span>
     <span><b>Ctrl+D</b>Stats</span>
   </div>
   <div id="stats"></div>
@@ -308,7 +316,7 @@ const ZMAX = NR * CFG.DZ, HALFW = NB * CFG.DX / 2;
 
 /* ======================= settings (persisted) ======================= */
 const DEF = { rate: 40, camMotion: 1, shotLen: 1, cutColor: true, ballSize: 0.8, reflect: 0.55, grid: 0.95, lines: true, text: true, flat: false, adaptive: true,
-  theme: 'waterfall', logScale: true, logRange: 20, hGain: 2.2, cs_rainbow: true, cs_winter: true, cs_cyanPink: true, cs_pinkCyan: true, cs_blue: true, cs_blueOr: true, cs_orBlue: true, gapless: true, autoClear: false, mediaOverlay: true, bgBlack: false, vol: 0.8, muted: false, repeat: 0, shuffle: false, uiAlpha: 0.55, textSize: 1, ignoreThe: true, fpsCap: 60, collapsed: false, folders: [] };
+  theme: 'waterfall', logScale: true, logRange: 20, hGain: 2.2, cs_rainbow: true, cs_winter: true, cs_cyanPink: true, cs_pinkCyan: true, cs_blue: true, cs_blueOr: true, cs_orBlue: true, gapless: true, autoClear: false, mediaOverlay: true, bgBlack: true, randomCount: 1000, vol: 0.8, muted: false, repeat: 0, shuffle: false, uiAlpha: 0.55, textSize: 1, ignoreThe: true, fpsCap: 60, collapsed: false, folders: [] };
 const S = Object.assign({}, DEF); S.folders = [];
 const SKEY = 'spectral.settings.v2';
 // Settings live in settings.json in the app-data folder (written by the desktop shell); localStorage is only the fallback for a browser preview.
@@ -364,10 +372,10 @@ function buildBackground() {
   bgx.globalCompositeOperation = 'source-over';
 }
 
-/* ======================= colour ======================= */
-// A colour scheme = a 256-entry lookup table + a per-band offset into it. Rainbow also drifts through the table over time and at camera cuts
+/* ======================= color ======================= */
+// A color scheme = a 256-entry lookup table + a per-band offset into it. Rainbow also drifts through the table over time and at camera cuts
 // (`move`); the other schemes are fixed by frequency (low -> high = left -> right). Every emitted row remembers its scheme (rowSch), so when a
-// new song picks a new scheme its colours come out of the emitter while the previous song's balls keep theirs as they flow away.
+// new song picks a new scheme its colors come out of the emitter while the previous song's balls keep theirs as they flow away.
 const hsl = (h, s, l) => { h = (h % 1 + 1) % 1 * 6; const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(h % 2 - 1)), m = l - c / 2; let r = 0, g = 0, b = 0;
   if (h < 1) { r = c; g = x; } else if (h < 2) { r = x; g = c; } else if (h < 3) { g = c; b = x; } else if (h < 4) { g = x; b = c; } else if (h < 5) { r = x; b = c; } else { r = c; b = x; } return [(r + m) * 255, (g + m) * 255, (b + m) * 255]; };
 const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
@@ -375,12 +383,12 @@ const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a)
 const BLUE = [38, 120, 255], ORANGE = [255, 104, 0], CYAN = [0, 255, 255], BARBIE = [254, 70, 165];     // BARBIE = xkcd:barbie pink (#fe46a5)
 const SCHEMES = [
   { id: 'rainbow', label: 'Rainbow', move: true,  f: t => hsl(t, 0.9, 0.58) },
-  { id: 'winter',  label: 'Winter (matplotlib colour map)', f: t => [0, t * 255, (1 - t / 2) * 255] },
-  { id: 'cyanPink', label: 'Cyan centre, Barbie pink sides', f: t => mix(CYAN, BARBIE, sstep(0.2, 0.8, Math.abs(2 * t - 1))) },
-  { id: 'pinkCyan', label: 'Barbie pink centre, cyan sides', f: t => mix(BARBIE, CYAN, sstep(0.2, 0.8, Math.abs(2 * t - 1))) },
+  { id: 'winter',  label: 'Winter (matplotlib color map)', f: t => [0, t * 255, (1 - t / 2) * 255] },
+  { id: 'cyanPink', label: 'Cyan center, Barbie pink sides', f: t => mix(CYAN, BARBIE, sstep(0.2, 0.8, Math.abs(2 * t - 1))) },
+  { id: 'pinkCyan', label: 'Barbie pink center, cyan sides', f: t => mix(BARBIE, CYAN, sstep(0.2, 0.8, Math.abs(2 * t - 1))) },
   { id: 'blue',    label: 'All bright blue', f: t => BLUE },
-  { id: 'blueOr',  label: 'Blue centre, hot orange sides', f: t => mix(BLUE, ORANGE, sstep(0.3, 0.7, Math.abs(2 * t - 1))) },
-  { id: 'orBlue',  label: 'Hot orange centre, blue sides', f: t => mix(ORANGE, BLUE, sstep(0.3, 0.7, Math.abs(2 * t - 1))) },
+  { id: 'blueOr',  label: 'Blue center, hot orange sides', f: t => mix(BLUE, ORANGE, sstep(0.3, 0.7, Math.abs(2 * t - 1))) },
+  { id: 'orBlue',  label: 'Hot orange center, blue sides', f: t => mix(ORANGE, BLUE, sstep(0.3, 0.7, Math.abs(2 * t - 1))) },
 ];
 const HOFFS = [], LUTS = [];
 SCHEMES.forEach((sc, si) => {
@@ -397,11 +405,11 @@ function pickScheme(force) {                                          // random 
   if (!force && on.length > 1) { const k = on.indexOf(curSch); if (k >= 0) on.splice(k, 1); }
   curSch = on[Math.floor(Math.random() * on.length)];
 }
-function cycleScheme() {                                              // Ctrl+T: the next colour scheme (among the ticked ones; all of them when fewer than two are ticked); new colours come out of the emitter and flow in
+function cycleScheme() {                                              // Ctrl+T: the next color scheme (among the ticked ones; all of them when fewer than two are ticked); new colors come out of the emitter and flow in
   let pool = []; SCHEMES.forEach((sc, i) => { if (S['cs_' + sc.id]) pool.push(i); });
   if (pool.length < 2) pool = SCHEMES.map((_, i) => i);
   const k = pool.indexOf(curSch); curSch = pool[(k + 1) % pool.length];       // (k = -1 when the current one is not in the pool: start at the first)
-  showMsg('Colours: ' + SCHEMES[curSch].label);
+  showMsg('Colors: ' + SCHEMES[curSch].label);
 }
 function applyBg() { document.documentElement.classList.toggle('bgblack', !!S.bgBlack); if (W) buildBackground(); }
 
@@ -636,7 +644,7 @@ function parsePlaylistText(text, dir, fname) {
   return out;
 }
 
-/* ======================= virtualised list (tens of thousands of rows stay cheap) ======================= */
+/* ======================= virtualized list (tens of thousands of rows stay cheap) ======================= */
 let rowH = 28;
 class VList {
   constructor(root, render) {
@@ -1137,6 +1145,22 @@ function renderLibRow(i, e) {
   else { const t = r.trk; e.append(el('span', 'no', t.no ? String(t.no).padStart(2, '0') : ''), el('span', 'nm', t.title + (t.artist && t.artist !== r.a.name ? '  —  ' + t.artist : '')), el('span', 'dim', t.dur ? fmt(t.dur) : '')); }
 }
 const libList = new VList(libEl, renderLibRow);
+/* ---- random songs: the button under the search bar adds songs drawn at random (random order) from the whole library to Now Playing and plays the first ---- */
+const PLAYABLE = /\.(mp3|flac|m4a|aac|ogg|oga|opus|wav|webm)$/i;                  // (WMA, APE and WavPack cannot be decoded here, so they are never drawn)
+const RND_ICON = '<svg viewBox="0 0 24 24"><path d="M3 7h3.5c3 0 4.5 2 6 5s3 5 6 5H21"/><path d="M3 17h3.5c1.6 0 2.8-.6 3.8-1.6M21 7h-2.5c-1.6 0-2.8.6-3.8 1.6"/><path d="M18.5 4.5L21 7l-2.5 2.5M18.5 14.5L21 17l-2.5 2.5"/></svg>';
+const randomN = () => clamp(Math.round(+S.randomCount) || 1000, 1, 10000);
+function randomTracks(n) {
+  const pool = LIB.tracks.filter(t => !t.missing && (t.mock || PLAYABLE.test(t.abs))), len = pool.length, take = Math.min(n, len);
+  for (let i = len - 1; i >= len - take; i--) { const j = Math.floor(Math.random() * (i + 1)), x = pool[i]; pool[i] = pool[j]; pool[j] = x; }      // partial Fisher-Yates: only the part that is kept gets shuffled
+  return pool.slice(len - take).reverse();
+}
+function addRandom() {
+  const t = randomTracks(randomN()); if (!t.length) { showMsg('There are no songs in the library yet'); return; }
+  addToNP(t, true); showMsg('Added ' + t.length.toLocaleString() + ' random song' + (t.length === 1 ? '' : 's') + ' to Now Playing');
+}
+function updateRandomLabel() { $('#libRandom').innerHTML = RND_ICON; $('#libRandom').appendChild(document.createTextNode(randomN().toLocaleString() + ' random songs')); }
+$('#libRandom').onclick = () => { addRandom(); $('#libRandom').blur(); };
+updateRandomLabel();
 function restyleLib() { for (const [i, e] of libList.pool) if (flat[i] && flat[i].t !== 'L') e.classList.toggle('sel', rowKey(flat[i]) === libSel); }   // in place, so double-clicks still reach the same element
 const rowOf = e => { const row = e.target.closest('.row'); return row ? { row, i: +row.dataset.i, r: flat[+row.dataset.i] } : null; };
 
@@ -2037,8 +2061,8 @@ addEventListener('keydown', e => {
     switch (e.key.toLowerCase()) {
       case 'h': e.preventDefault(); toggleCollapse(); break;
       case 'l': { e.preventDefault(); const nx = { waterfall: 'light', light: 'dark', dark: 'waterfall' }[S.theme] || 'waterfall'; setS('theme', nx); showMsg(nx === 'waterfall' ? 'Waterfall mode' : (nx === 'light' ? 'Light mode' : 'Dark mode')); break; }
-      case 't': e.preventDefault(); if (S.theme !== 'waterfall') showMsg('Colour schemes show in waterfall mode (Ctrl+L)'); else cycleScheme(); break;
-      case 'b': e.preventDefault(); if (S.theme !== 'waterfall') showMsg('The background colour applies in waterfall mode (Ctrl+L)'); else { setS('bgBlack', !S.bgBlack); showMsg(S.bgBlack ? 'Black background' : 'Blue background'); } break;
+      case 't': e.preventDefault(); if (S.theme !== 'waterfall') showMsg('Color schemes show in waterfall mode (Ctrl+L)'); else cycleScheme(); break;
+      case 'b': e.preventDefault(); if (S.theme !== 'waterfall') showMsg('The background color applies in waterfall mode (Ctrl+L)'); else { setS('bgBlack', !S.bgBlack); showMsg(S.bgBlack ? 'Black background' : 'Blue background'); } break;
       case 'd': e.preventDefault(); showStats = !showStats; $('#stats').style.display = showStats ? 'block' : 'none'; break;
       case 'arrowright': e.preventDefault(); seekBy(15); break;
       case 'arrowleft': e.preventDefault(); seekBy(-15); break;
@@ -2067,7 +2091,7 @@ window.__sp = {
   PROF, startDemo, S, setS, P, PL, LIB, host, G, AUD, get amps() { return curA; }, get actx() { return actx; }, get analyser() { return analyser; }, get audioEl() { return audioEl; }, playFrom, addToNP, activeList, libList, plList, toM3U, parsePlaylistText, relPath, resolvePath,
   get flat() { return flat; }, get cam() { return [Px, Py, Pz, camYaw / DEG, camRoll / DEG]; },
   get stats() { return { W, H, qual, msAvg, dtAvg, dotCount, frames, rate: S.rate, speed, shot: shot.idx, shotAge: simT - shot.t0 }; },
-  setJump, jumpTarget, mediaAction, cycleScheme, showWelcome, get media() { return MSESS && { md: MSESS.metadata && { title: MSESS.metadata.title, artist: MSESS.metadata.artist, album: MSESS.metadata.album }, state: MSESS.playbackState }; }, SCHEMES, get curSch() { return curSch; }, set curSch(v) { curSch = v; },
+  setJump, jumpTarget, mediaAction, cycleScheme, addRandom, showWelcome, get media() { return MSESS && { md: MSESS.metadata && { title: MSESS.metadata.title, artist: MSESS.metadata.artist, album: MSESS.metadata.album }, state: MSESS.playbackState }; }, SCHEMES, get curSch() { return curSch; }, set curSch(v) { curSch = v; },
   setShot(i) { cutTo(i); shot.dur = 1e9; }, fixQuality(q) { adapt = false; qual = q; resize(); },
 };
 
@@ -2185,7 +2209,7 @@ function showWelcome(first) {
   card.appendChild(el('h3', '', 'GOOD TO KNOW'));
   const tips = el('div', 'tips');
   for (const [k, v] of [['Space', 'Play / pause'], ['← →', 'Previous / next track'], ['Ctrl + ← →', 'Back / forward 15 seconds'], ['↑ ↓', 'Volume'], ['Ctrl + F  or  /', 'Search the library'],
-      ['Double-click', 'Play an artist, album or song'], ['Drag', 'Add to Now Playing or a playlist'], ['Right-click', 'More actions on a song'], ['Ctrl + H', 'Hide the lists'], ['Ctrl + L', 'Waterfall, light and dark modes'], ['Ctrl + T', 'Next colour scheme'], ['Ctrl + B', 'Blue or black background'], ['Ctrl + ,', 'Settings']]) {
+      ['Double-click', 'Play an artist, album or song'], ['Drag', 'Add to Now Playing or a playlist'], ['Right-click', 'More actions on a song'], ['Ctrl + H', 'Hide the lists'], ['Ctrl + L', 'Waterfall, light and dark modes'], ['Ctrl + T', 'Next color scheme'], ['Ctrl + B', 'Blue or black background'], ['Ctrl + ,', 'Settings']]) {
     tips.appendChild(el('b', '', k)); tips.appendChild(el('span', '', v));
   }
   card.appendChild(tips);
@@ -2203,6 +2227,7 @@ const SCHEMA = [
   { k: 'ignoreThe', label: 'Sort \u201cThe Beatles\u201d under B', bool: true },
   { sec: 'Playback' },
   { k: 'autoClear', label: 'Double-click replaces Now Playing', bool: true, note: 'Double-clicking an artist, album or song in the library clears Now Playing first, then plays it. Dragging and the right-click menu never clear.' },
+  { k: 'randomCount', label: 'Random songs button', num: true, min: 1, max: 10000, unit: 'songs', note: 'How many songs the random button under the library search adds to Now Playing (1 to 10,000; the default is 1,000).' },
   { k: 'gapless', label: 'Gapless transitions', bool: true, note: 'Preloads the next track and starts it just before the current one ends.' },
   { k: 'mediaOverlay', label: 'Show song in the system media overlay', bool: true, note: 'The flyout Windows shows for volume and media keys, with the song name and buttons (also used by Bluetooth headsets). Untick to hide it: the media keys still work. Takes effect after restarting Spectral.' },
   { sec: 'Library' },
@@ -2211,8 +2236,8 @@ const SCHEMA = [
   { k: 'rate', label: 'Ball update rate', min: 10, max: 80, step: 1, fmt: v => v + ' rows/s', pre: [['slow', 20], ['2\u00d7', 40], ['3\u00d7', 60]], note: 'How fast new spectra are emitted and flow downstream.' },
   { k: 'camMotion', label: 'Camera motion', min: 0, max: 2.5, step: 0.05, fmt: v => v.toFixed(2) + '\u00d7', pre: [['still', 0], ['default', 1]], note: 'Slow drift, pan and sway inside every shot.' },
   { k: 'shotLen', label: 'Shot length', min: 0.4, max: 3, step: 0.1, fmt: v => v.toFixed(1) + '\u00d7', note: 'Applies from the next camera cut.' },
-  { k: 'cutColor', label: 'Shift rainbow colours at camera cuts', bool: true },
-  { sec: 'Colour schemes' },
+  { k: 'cutColor', label: 'Shift rainbow colors at camera cuts', bool: true },
+  { sec: 'Color schemes' },
   ...SCHEMES.map((sc, i) => ({ k: 'cs_' + sc.id, label: sc.label, bool: true, note: i === 0 ? 'Every new song picks one of the ticked schemes at random. With none ticked, Rainbow is used.' : undefined })),
   { sec: 'Look' },
   { k: 'bgBlack', label: 'Black background', bool: true, note: 'Plain black instead of the blue backdrop. Ctrl+B toggles it.' },
@@ -2262,6 +2287,7 @@ function onSetting(k) {
   else if (k === 'mediaOverlay') { syncMedia(); if (host.desktop && !!S.mediaOverlay !== host.mediaOverlay) showMsg('Restart Spectral for the media overlay change to take full effect'); }
   else if (k === 'theme') applyTheme();
   else if (k === 'bgBlack') applyBg();
+  else if (k === 'randomCount') updateRandomLabel();
   else if (k.startsWith('cs_') && !S['cs_' + SCHEMES[curSch].id]) pickScheme(true);   // the scheme in use was just unticked: switch now
 }
 const SKEEP = ['rate', 'camMotion'];                      // (all keys are persisted; this list is only documentation)
@@ -2272,7 +2298,7 @@ function saveS() {
 }
 function setS(k, v) { S[k] = v; onSetting(k); saveS(); syncPanel(); }
 function syncPanel() {
-  for (const it of SCHEMA) if (it.k) { const c = ctl[it.k]; if (!c) continue; if (it.bool) c.inp.checked = !!S[it.k]; else { c.inp.value = S[it.k]; c.val.textContent = it.fmt(S[it.k]); } }
+  for (const it of SCHEMA) if (it.k) { const c = ctl[it.k]; if (!c) continue; if (it.bool) c.inp.checked = !!S[it.k]; else if (it.num) { if (document.activeElement !== c.inp) c.inp.value = S[it.k]; } else { c.inp.value = S[it.k]; c.val.textContent = it.fmt(S[it.k]); } }
   renderFolders();
 }
 let folderBox = null;
@@ -2302,7 +2328,13 @@ function buildPanel() {
       add.appendChild(rs); const tp = el('button', 'sm', 'Quick tips'); tp.onclick = () => { togglePanel(false); showWelcome(false); }; add.appendChild(tp);
       if (host.undoTags) { const ut = el('button', 'sm', 'Undo tag edit'); ut.title = 'Put the tags back as they were before the last Edit tags'; ut.onclick = () => { togglePanel(false); askUndo(); }; add.appendChild(ut); } row.append(list, add); if (host.playlistDir) row.appendChild(el('div', 'note', 'Playlists (.m3u) are read from and saved to ' + host.playlistDir)); folderBox = { list }; panel.appendChild(row); continue;
     }
-    if (it.bool) {
+    if (it.num) {                                                      // a number typed into a box (no slider)
+      const lab = el('div', 'lab'), inp = el('input'), box = el('div', 'numrow'); lab.appendChild(el('span', '', it.label));
+      inp.type = 'number'; inp.min = it.min; inp.max = it.max; inp.step = 1; inp.inputMode = 'numeric'; inp.autocomplete = 'off';
+      const commit = () => { const v = Math.round(+inp.value); const n = Number.isFinite(v) && inp.value.trim() !== '' ? clamp(v, it.min, it.max) : S[it.k]; inp.value = n; if (n !== S[it.k]) setS(it.k, n); };   // blank or nonsense goes back to what it was; too big or small is clamped
+      inp.addEventListener('change', commit); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { commit(); inp.blur(); } else if (e.key === 'Escape') { inp.value = S[it.k]; inp.blur(); } });
+      box.append(inp, el('span', 'unit', it.unit || '')); row.append(lab, box); ctl[it.k] = { inp };
+    } else if (it.bool) {
       const l = el('label', 'chk'), inp = el('input'); inp.type = 'checkbox'; inp.onchange = () => { setS(it.k, inp.checked); inp.blur(); };
       l.appendChild(inp); l.appendChild(document.createTextNode(it.label)); row.appendChild(l); ctl[it.k] = { inp };
     } else {
@@ -2315,7 +2347,7 @@ function buildPanel() {
     panel.appendChild(row);
   }
   const rs = el('button', 'sm', 'RESET TO DEFAULTS'); rs.style.marginTop = '14px';
-  rs.onclick = () => { const f = S.folders; Object.assign(S, DEF); S.folders = f; for (const k of ['rate', 'adaptive', 'uiAlpha', 'ignoreThe', 'vol', 'theme', 'bgBlack']) onSetting(k); saveS(); syncPanel(); syncButtons(); rs.blur(); };
+  rs.onclick = () => { const f = S.folders; Object.assign(S, DEF); S.folders = f; for (const k of ['rate', 'adaptive', 'uiAlpha', 'ignoreThe', 'vol', 'theme', 'bgBlack', 'randomCount']) onSetting(k); saveS(); syncPanel(); syncButtons(); rs.blur(); };
   panel.appendChild(rs);
 }
 function togglePanel(on) { const open = on === undefined ? !panel.classList.contains('open') : on; panel.classList.toggle('open', open); gear.classList.toggle('on', open); }

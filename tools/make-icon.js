@@ -3,7 +3,7 @@
 // Run: node tools/make-icon.js
 const fs = require('fs'), path = require('path'), zlib = require('zlib');
 const S = 512, SS = 3;                                           // size, supersampling per axis
-const TURQ = [32, 232, 212];                                    // the one bar colour
+const TURQ = [32, 232, 212];                                    // the one bar color
 const bars = [0.34, 0.58, 0.82, 0.62, 0.95, 0.7, 0.46, 0.28];   // relative heights
 const hsl = (h, s, l) => { const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2; let r = 0, g = 0, b = 0;
   if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; } else if (h < 180) { g = c; b = x; } else if (h < 240) { g = x; b = c; } else if (h < 300) { r = x; b = c; } else { r = c; b = x; }

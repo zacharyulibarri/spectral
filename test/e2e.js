@@ -54,7 +54,7 @@ const log = (...a) => console.log(...a);
   await page.keyboard.press('Space'); await sleep(400); const paused = await page.evaluate(() => document.querySelector('#bPlay').innerHTML.includes('M8 5v14')); await page.keyboard.press('Space');
   log('PAUSE toggled (play icon shown while paused):', paused);
 
-  // flac / wma / m4a behaviour
+  // flac / wma / m4a behavior
   for (const ext of ['flac', 'm4a', 'wma']) {
     const r = await page.evaluate(async ext => {
       const t = __sp.LIB.tracks.find(t => t.abs.toLowerCase().endsWith('.' + ext)); if (!t) return null;

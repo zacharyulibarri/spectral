@@ -43,7 +43,7 @@ async function readTag(fh, size) {
   const ver = h[3], flags = h[5];
   if (ver < 2 || ver > 4 || h[4] === 0xff) throw fail('unsupported', 'ID3 tag version ' + ver + ' is not supported');
   if ([h[6], h[7], h[8], h[9]].some(x => x & 0x80)) throw fail('unsupported', 'damaged ID3 header');
-  if (flags & 0x80) throw fail('unsupported', 'the tag uses unsynchronisation');
+  if (flags & 0x80) throw fail('unsupported', 'the tag uses unsynchronization');
   if (ver === 2 && (flags & 0x40)) throw fail('unsupported', 'the tag is compressed');
   if (ver >= 3 && (flags & 0x40)) throw fail('unsupported', 'the tag has an extended header');
   if (ver === 4 && (flags & 0x10)) throw fail('unsupported', 'the tag has a footer');
@@ -59,7 +59,7 @@ async function readTag(fh, size) {
     if (o + hl + len > body.length) throw fail('unsupported', 'a frame runs past the end of the tag');
     frames.push({ id, raw: Buffer.from(body.subarray(o, o + hl + len)) }); o += hl + len;
   }
-  for (let i = o; i < body.length; i++) if (body[i] !== 0) throw fail('unsupported', 'unrecognised data after the frames');   // anything but zero padding means the layout was misread
+  for (let i = o; i < body.length; i++) if (body[i] !== 0) throw fail('unsupported', 'unrecognized data after the frames');   // anything but zero padding means the layout was misread
   return { ver, total, frames };
 }
 

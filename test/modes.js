@@ -40,7 +40,7 @@ const launch = async () => {
   await page.keyboard.press('Control+l'); await sleep(500); await page.keyboard.press('Control+l'); await sleep(800);
   console.log('cycled back', JSON.stringify(await st()));
   await page.evaluate(() => document.querySelector('#gear').click()); await sleep(300);
-  console.log('folder rows:', await page.evaluate(() => [...document.querySelectorAll('#panel .fl')].map(r => r.textContent)), '| colour boxes:', await page.evaluate(() => [...document.querySelectorAll('#panel label.chk')].map(l => l.textContent).filter(t => /centre/.test(t))));
+  console.log('folder rows:', await page.evaluate(() => [...document.querySelectorAll('#panel .fl')].map(r => r.textContent)), '| color boxes:', await page.evaluate(() => [...document.querySelectorAll('#panel label.chk')].map(l => l.textContent).filter(t => /center/.test(t))));
   console.log('page errors:', errs.length ? errs : 'none');
   await app.close(); process.exit(0);
 })().catch(e => { console.error('FAILED', e); process.exit(1); });

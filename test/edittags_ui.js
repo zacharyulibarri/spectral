@@ -125,7 +125,7 @@ let bad = 0; const chk = (n, c, x) => { console.log((c ? 'PASS ' : 'FAIL ') + n 
   chk('no temporary files left in that folder', fs.readdirSync(path.join(root, 'Untagged')).every(f => !/sp-tmp/.test(f)));
 
   // 6. formats we do not edit; settings undo
-  const wma = others.find(f => /\.wma$/i.test(f)); if (wma) { await page.evaluate(n => __sp.addToNP(__sp.LIB.tracks.filter(t => /\.wma$/i.test(t.abs)), false), 0); await sleep(300); const n = await page.locator('#plList .row.pr').count(); await page.locator('#plList .row.pr >> nth=' + (n - 1)).click({ button: 'right' }); await sleep(200); const items = page.locator('.menu .mi', { hasText: 'Edit tags' }); chk('WMA: Edit tags… is greyed out', (await items.getAttribute('class')).includes('dis')); await page.mouse.click(700, 8); }
+  const wma = others.find(f => /\.wma$/i.test(f)); if (wma) { await page.evaluate(n => __sp.addToNP(__sp.LIB.tracks.filter(t => /\.wma$/i.test(t.abs)), false), 0); await sleep(300); const n = await page.locator('#plList .row.pr').count(); await page.locator('#plList .row.pr >> nth=' + (n - 1)).click({ button: 'right' }); await sleep(200); const items = page.locator('.menu .mi', { hasText: 'Edit tags' }); chk('WMA: Edit tags… is grayed out', (await items.getAttribute('class')).includes('dis')); await page.mouse.click(700, 8); }
   await page.evaluate(() => document.querySelector('#gear').click()); await sleep(200);
   await page.locator('#panel button', { hasText: 'Undo tag edit' }).click(); await sleep(400);
   const ucard = await page.locator('#tagEd.open .card').textContent(); chk('Settings > Undo tag edit asks first', /UNDO TAG EDIT/.test(ucard) && /\d+ file/.test(ucard), ucard.slice(0, 120));

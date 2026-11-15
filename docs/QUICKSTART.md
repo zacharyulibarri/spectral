@@ -12,13 +12,13 @@ A welcome screen asks where your music lives.
 
 Reopen the key tips any time from **Settings → Library → Quick tips**.
 
-Spectral reads each file's tags (artist, album artist, album, title, track number), so it does not matter how your folders are organised. Files without tags fall back to `Artist/Album/01 Title.ext` folder names.
+Spectral reads each file's tags (artist, album artist, album, title, track number), so it does not matter how your folders are organized. Files without tags fall back to `Artist/Album/01 Title.ext` folder names.
 
 ## 2. The window
 
 | Area | What it does |
 |---|---|
-| **Library** (left) | Every artist, album and song, A to Z. Click an artist or album to open it. |
+| **Library** (left) | Every artist, album and song, A to Z. Click an artist or album to open it. The **random songs** button under the search bar adds 1,000 songs drawn at random from the whole library to Now Playing and starts playing them. |
 | **Now Playing** (right, top) | The current song, a small live spectrum, a progress bar (click to seek, or press and drag: the bar and time follow your pointer and the song jumps when you let go; Esc cancels), and the transport buttons: previous, play/pause, next, repeat (off, all, this track), random, mute and volume. |
 | **Playlist tabs** (right, bottom) | **Now Playing** is the queue; its **Clear** button removes everything except the song that is playing. Each playlist you open gets its own tab. The **Playlists ▾** button lists them all. |
 | **Waterfall** (behind everything) | The spectrum of the song, drawn in 3D. |
@@ -30,6 +30,7 @@ The line under the library search shows your song and artist counts. The circula
 - **Double-click** an artist, album or song in the library to add it to Now Playing and play it. Double-click a row in Now Playing or a playlist to play from there.
 - **Drag** artists, albums or songs onto the Now Playing list, a playlist tab or a playlist, to add them without interrupting what is playing. Drag inside a list to reorder; hold **Shift** while dropping onto a tab to *move* instead of copy.
 - **Right-click** for the full set of actions (see below).
+- Press **random songs** (under the library search bar) for a quick mix: it adds 1,000 randomly chosen songs, in random order, to the end of Now Playing and plays the first of them. Press it again for another draw. The number is adjustable in Settings.
 - Open files from Explorer, or drop them on the window, and Spectral plays them. If you install with the Windows installer, Spectral appears under **Open with** for audio files and playlists.
 
 Click a row to select it. **Ctrl+click** and **Shift+click** select several; **Ctrl+A** selects everything in the playlist you last clicked; **Delete** removes the selected songs from that playlist (your files are never deleted).
@@ -95,7 +96,7 @@ Edited fields are highlighted, and the form says how many files will change. **S
 | **A–Z, 0–9** | Jump to an artist |
 | **Ctrl+H** | Hide / show the lists, to see the waterfall |
 | **Ctrl+L** | Cycle waterfall → light → dark mode |
-| **Ctrl+T** | Next colour scheme for the waterfall (cycles the schemes ticked in Settings) |
+| **Ctrl+T** | Next color scheme for the waterfall (cycles the schemes ticked in Settings) |
 | **Ctrl+B** | Blue ↔ black waterfall background |
 | **Ctrl+,** | Settings |
 | **Ctrl+O** | Open audio files |
@@ -114,16 +115,17 @@ Changes apply immediately and are remembered.
 
 **Playback**
 - **Double-click replaces Now Playing**: when ticked, double-clicking in the library clears Now Playing first. Dragging and the right-click menu never clear it.
+- **Random songs button**: type how many songs the random button adds (1 to 10,000; default 1,000).
 - **Gapless transitions**: the next song starts without a gap.
 - **Show song in the system media overlay**: the Windows flyout that appears when you press volume or media keys, also used by Bluetooth headsets. Untick it to hide the flyout; the media keys still work. Takes effect after restarting Spectral.
 
 **Library**
 - Your main folder and any extra folders, **Rescan now**, **Quick tips**, and **Undo tag edit**.
 
-**Motion, Colour schemes, Look**
+**Motion, Color schemes, Look**
 - How fast the waterfall flows, camera motion and shot length, ball size, spectrum height and log scaling, reflections, grid and text.
-- **Colour schemes**: every new song picks one of the ticked schemes at random. Untick the ones you do not like. **Ctrl+T** switches to the next scheme by hand.
-- **Black background** (also **Ctrl+B**): plain black instead of the blue backdrop.
+- **Color schemes**: every new song picks one of the ticked schemes at random. Untick the ones you do not like. **Ctrl+T** switches to the next scheme by hand.
+- **Black background** (also **Ctrl+B**): on by default; untick it for the blue backdrop.
 
 **Performance**
 - **Frame-rate cap** and **Adaptive resolution**. A lower cap uses less CPU. For the lowest power use, press **Ctrl+L** to switch to light or dark mode, which stops drawing the waterfall entirely.

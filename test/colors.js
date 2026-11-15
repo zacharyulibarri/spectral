@@ -1,5 +1,5 @@
 'use strict';
-// Per-song colour schemes + new defaults. Usage: node test/colors.js <userDataDir with a warm library cache> <outDir>
+// Per-song color schemes + new defaults. Usage: node test/colors.js <userDataDir with a warm library cache> <outDir>
 const { _electron: electron } = require('playwright-core');
 const path = require('path'), fs = require('fs');
 const ROOT = path.join(__dirname, '..'), DATA = process.argv[2], OUT = process.argv[3] || '.';
@@ -12,7 +12,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.setViewportSize({ width: 1600, height: 900 }).catch(() => {});
   await page.waitForFunction(() => window.__sp && window.__sp.LIB.tracks.length > 1000, null, { timeout: 60000 });
   console.log('defaults', JSON.stringify(await page.evaluate(() => { const s = __sp.S; return { ballSize: s.ballSize, logScale: s.logScale, logRange: s.logRange, hGain: s.hGain, cs: Object.keys(s).filter(k => k.startsWith('cs_') && s[k]).length }; })));
-  console.log('settings panel colour checkboxes:', await page.evaluate(() => { document.querySelector('#gear').click(); return [...document.querySelectorAll('#panel label.chk')].map(l => l.textContent).filter(t => /rainbow|winter|barbie|blue|orange/i.test(t)); }));
+  console.log('settings panel color checkboxes:', await page.evaluate(() => { document.querySelector('#gear').click(); return [...document.querySelectorAll('#panel label.chk')].map(l => l.textContent).filter(t => /rainbow|winter|barbie|blue|orange/i.test(t)); }));
   console.log('log range slider min:', await page.evaluate(() => [...document.querySelectorAll('#panel .row')].find(r => /Log range/.test(r.textContent)).querySelector('input').min));
   await page.evaluate(() => { document.querySelector('#gear').click(); __sp.setS('vol', 0); });
 
@@ -31,7 +31,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.evaluate(p => { __sp.addToNP([__sp.LIB.tracks.filter(t => /\.mp3$/i.test(t.abs))[50]], true); __sp.audioEl.currentTime = 60; }, 0); await sleep(2500);
   for (let i = 0; i < 7; i++) {
     await page.evaluate(i => { for (const sc of __sp.SCHEMES) __sp.S['cs_' + sc.id] = false; __sp.setS('cs_' + __sp.SCHEMES[i].id, true); __sp.curSch = i; }, i);
-    await page.evaluate(() => __sp.setS('collapsed', true)); await sleep(3500);                        // let the new colour flow in
+    await page.evaluate(() => __sp.setS('collapsed', true)); await sleep(3500);                        // let the new color flow in
     await page.screenshot({ path: path.join(OUT, 'scheme_' + i + '.png') }); await page.evaluate(() => __sp.setS('collapsed', false));
   }
   console.log('page errors:', errs.length ? errs : 'none');
