@@ -13,7 +13,7 @@ New here? Read the **[quick start guide](docs/QUICKSTART.md)**.
 
 ## Install on Windows ("Open With")
 ```
-npm run dist        # builds dist/Spectral-Setup-<version>.exe (per-user NSIS installer, no admin needed)
+npm run dist        # builds dist/Spectral-Setup-<version>.exe (NSIS installer; it asks whether to install for everyone, which needs administrator approval, or just for you)
 npm run dist:dir    # just dist/win-unpacked/Spectral.exe, for quick checks
 npm run icon        # regenerates build/icon.png (tools/make-icon.js)
 ```
