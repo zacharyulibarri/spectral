@@ -4,6 +4,12 @@ A lightweight desktop music player: a software-rendered 3D spectrum waterfall be
 
 New here? Read the **[quick start guide](docs/QUICKSTART.md)**.
 
+
+
+https://github.com/user-attachments/assets/5367a29b-1e75-43e9-896d-3809cebb0f4a
+
+
+
 ## Run
 - Double-click `Spectral.bat` (or `npm start`). `Spectral (no GPU).bat` = Chromium hardware acceleration off. `Spectral (dev).bat` = DevTools on F12.
 - First launch shows a welcome screen where you choose the music folder(s); change them later in Settings > Library. Later launches show the cached index instantly and rescan changed files in the background.
