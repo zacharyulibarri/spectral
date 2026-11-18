@@ -1,7 +1,7 @@
 {
   "name": "spectral",
   "productName": "Spectral",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "Desktop music player with a software-rendered 3D spectrum visualizer",
   "author": "Zach Ulibarri",
   "license": "MIT",
