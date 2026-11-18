@@ -316,7 +316,7 @@ const ZMAX = NR * CFG.DZ, HALFW = NB * CFG.DX / 2;
 
 /* ======================= settings (persisted) ======================= */
 const DEF = { rate: 40, camMotion: 1, shotLen: 1, cutColor: true, ballSize: 0.8, reflect: 0.55, grid: 0.95, lines: true, text: true, flat: false, adaptive: true,
-  theme: 'waterfall', logScale: true, logRange: 20, hGain: 2.2, cs_rainbow: true, cs_winter: true, cs_cyanPink: true, cs_pinkCyan: true, cs_blue: true, cs_blueOr: true, cs_orBlue: true, gapless: true, autoClear: false, mediaOverlay: true, bgBlack: true, randomCount: 1000, vol: 0.8, muted: false, repeat: 0, shuffle: false, uiAlpha: 0.55, textSize: 1, ignoreThe: true, fpsCap: 60, collapsed: false, folders: [] };
+  theme: 'waterfall', logScale: true, logRange: 20, hGain: 2.2, cs_rainbow: true, cs_winter: true, cs_cyanPink: true, cs_pinkCyan: true, cs_blue: true, cs_blueOr: true, cs_orBlue: true, gapless: true, autoClear: false, mediaOverlay: true, bgBlack: true, specTilt: false, randomCount: 1000, vol: 0.8, muted: false, repeat: 0, shuffle: false, uiAlpha: 0.55, textSize: 1, ignoreThe: true, fpsCap: 60, collapsed: false, folders: [] };
 const S = Object.assign({}, DEF); S.folders = [];
 const SKEY = 'spectral.settings.v2';
 // Settings live in settings.json in the app-data folder (written by the desktop shell); localStorage is only the fallback for a browser preview.
@@ -1056,12 +1056,17 @@ addEventListener('keydown', e => { if (scrub && e.key === 'Escape') endScrub(); 
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button'); if (b) b.blur(); });
 volEl.onchange = () => volEl.blur();
 
+const TILT_DB = 4.5, TILT_OCT = Math.log2(16000 / 40), TILT_BUF = new Float32Array(MINI_N);
 function drawMini() {
   const w = mini.width, h = mini.height, n = MINI_N, bw = w / n; mctx.clearRect(0, 0, w, h);
   const spec = (P.track && P.track.spec) ? P.track.spec : (runN > 20 ? runSpec : null);
   mctx.fillStyle = S.theme === 'light' ? 'rgba(30,36,48,.8)' : 'rgba(225,232,248,.85)';
-  let mxv = 0; if (spec) for (let i = 0; i < n; i++) mxv = Math.max(mxv, spec[i]);
-  for (let i = 0; i < n; i++) { const v = spec && mxv > 0 ? spec[i] / mxv : 0, bh = Math.max(3, v * h * 0.92); mctx.fillRect(i * bw + bw * 0.18, h - bh, bw * 0.5, bh); }
+  let vals = spec;
+  if (spec && S.specTilt && spec === (P.track && P.track.spec)) {        // flatten the usual treble roll-off: +4.5 dB per octave from 40 Hz (the stored values span 42 dB)
+    vals = TILT_BUF; for (let i = 0; i < n; i++) { const v = spec[i]; vals[i] = v <= 0.001 ? 0 : v + (TILT_DB * (i + 0.5) / n * TILT_OCT / 42) * Math.min(1, v * 10); }   // true floor (e.g. above an MP3 cutoff) stays at zero
+  }
+  let mxv = 0; if (vals) for (let i = 0; i < n; i++) mxv = Math.max(mxv, vals[i]);
+  for (let i = 0; i < n; i++) { const v = vals && mxv > 0 ? vals[i] / mxv : 0, bh = Math.max(3, v * h * 0.92); mctx.fillRect(i * bw + bw * 0.18, h - bh, bw * 0.5, bh); }
 }
 
 /* ======================= library: artist -> album -> track tree ======================= */
@@ -2251,6 +2256,7 @@ const SCHEMA = [
   ...SCHEMES.map((sc, i) => ({ k: 'cs_' + sc.id, label: sc.label, bool: true, note: i === 0 ? 'Every new song picks one of the ticked schemes at random. With none ticked, Rainbow is used.' : undefined })),
   { sec: 'Look' },
   { k: 'bgBlack', label: 'Black background', bool: true, note: 'Plain black instead of the blue backdrop. Ctrl+B toggles it.' },
+  { k: 'specTilt', label: 'Flatten the whole-song spectrum', bool: true, note: 'The small spectrum in the player card shows how much of each pitch the song contains, bass on the left, treble on the right. Treble is naturally quieter, so it always slopes down. This lifts the highs (+4.5 dB per octave) so a typical song comes out roughly level and real differences stand out.' },
   { k: 'ballSize', label: 'Ball size', min: 0.5, max: 1.8, step: 0.05, fmt: v => v.toFixed(2) + '\u00d7' },
   { k: 'logScale', label: 'Log spectrum height (dB)', bool: true, note: 'Heights follow level in dB relative to the loudest band: quiet bands sink and peaks stand out, so the waterfall has more structure.' },
   { k: 'logRange', label: 'Log range', min: 5, max: 70, step: 1, fmt: v => v + ' dB', note: 'Smaller = more contrast between peaks and valleys. Only used by log height.' },

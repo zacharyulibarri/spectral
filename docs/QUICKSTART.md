@@ -127,6 +127,7 @@ Changes apply immediately and are remembered.
 - How fast the waterfall flows, camera motion and shot length, ball size, spectrum height and log scaling, reflections, grid and text.
 - **Color schemes**: every new song picks one of the ticked schemes at random. Untick the ones you do not like. **Ctrl+T** switches to the next scheme by hand.
 - **Black background** (also **Ctrl+B**): on by default; untick it for the blue backdrop.
+- **Flatten the whole-song spectrum**: the small spectrum in the player card shows how much of each pitch the song contains (bass on the left, treble on the right), so it normally slopes down to the right. This lifts the highs by 4.5 dB per octave so a typical song comes out roughly level. Off by default.
 
 **Performance**
 - **Frame-rate cap** and **Adaptive resolution**. A lower cap uses less CPU. For the lowest power use, press **Ctrl+L** to switch to light or dark mode, which stops drawing the waterfall entirely.
