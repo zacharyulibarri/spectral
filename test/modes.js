@@ -3,7 +3,7 @@
 // Usage: node test/modes.js <fresh userDataDir with a warm library cache (library.json, config.json)> <outDir>
 const { _electron: electron } = require('playwright-core');
 const path = require('path'), fs = require('fs');
-const ROOT = path.join(__dirname, '..'), DATA = process.argv[2], OUT = process.argv[3] || '.';
+const ROOT = path.join(__dirname, '..'), DATA = process.argv[2], OUT = process.argv[3] || require('os').tmpdir();
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const launch = async () => {
   const app = await electron.launch({ args: [ROOT, '--user-data=' + DATA] }), page = await app.firstWindow();
